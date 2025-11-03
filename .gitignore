@@ -1,0 +1,7 @@
+*.pyc
+venv/
+conversation_logs/
+*.env
+telegram*.py
+*.json
+.DS_Store

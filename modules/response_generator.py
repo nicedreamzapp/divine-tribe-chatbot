@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Response Generator - Builds intelligent prompts for the LLM
-FINAL VERSION - Always creates clickable links, searches descriptions, no hallucinations
+UPDATED VERSION - Stricter URL enforcement, filters spare parts unless asked
 """
 
 from typing import Dict, List
@@ -36,10 +36,15 @@ YOU MUST RESPOND:
 DO NOT INVENT ANY PRODUCTS. DO NOT MAKE UP LINKS. DO NOT CREATE FAKE DESCRIPTIONS.
 """
         
-        context = "=== AVAILABLE PRODUCTS (YOU MUST USE THESE EXACT NAMES AND URLS!) ===\n\n"
+        context = "=== AVAILABLE PRODUCTS (COPY THESE EXACT URLS!) ===\n\n"
+        context += "⚠️⚠️⚠️ CRITICAL INSTRUCTION: Every product below has TWO things you MUST copy EXACTLY:\n"
+        context += "1. PRODUCT NAME (copy character-for-character)\n"
+        context += "2. URL (copy the ENTIRE url exactly as shown)\n\n"
+        
         for i, p in enumerate(products[:max_products], 1):
             context += f"{i}. PRODUCT NAME: {p['name']}\n"
             context += f"   URL: {p['url']}\n"
+            context += f"   ⚠️ When mentioning this product, write: [{p['name']}]({p['url']})\n"
             context += f"   PRICE: {p['price']}\n"
             desc = p.get('full_description', '')[:400].strip()
             if desc:
@@ -47,12 +52,16 @@ DO NOT INVENT ANY PRODUCTS. DO NOT MAKE UP LINKS. DO NOT CREATE FAKE DESCRIPTION
             if any(word in p['name'].lower() for word in ['kit', 'bundle', 'complete']):
                 context += f"   ✅ COMPLETE KIT (recommend first!)\n"
             if any(word in p['name'].lower() for word in ['replacement', 'spare']):
-                context += f"   🔧 REPLACEMENT PART\n"
+                context += f"   🔧 REPLACEMENT PART (only mention if asked for parts)\n"
             context += "\n"
         
-        context += "\n⚠️ FORMATTING RULE: You MUST format each product as: [PRODUCT NAME](URL)\n"
-        context += "⚠️ Copy the EXACT product name and URL from above - do not modify them!\n"
-        context += f"⚠️ These are the ONLY {len(products)} products you can mention in your response.\n\n"
+        context += "\n🚨 URL ENFORCEMENT RULES 🚨\n"
+        context += f"• These are the ONLY {len(products)} products you can mention\n"
+        context += "• You MUST use the EXACT url shown above for each product\n"
+        context += "• DO NOT modify, shorten, or change any URL\n"
+        context += "• DO NOT use the same URL for multiple different products\n"
+        context += "• If you mention a product, it MUST be from this list with its EXACT URL\n"
+        context += "• Format: [EXACT PRODUCT NAME FROM ABOVE](EXACT URL FROM ABOVE)\n\n"
         return context
     
     def build_system_prompt(self, query: str, classification: Dict, product_context: str) -> str:
@@ -67,48 +76,60 @@ DO NOT INVENT ANY PRODUCTS. DO NOT MAKE UP LINKS. DO NOT CREATE FAKE DESCRIPTION
 ⚠️ DO NOT invent product names, URLs, prices, specifications, or emojis
 ⚠️ DO NOT create numbered lists of products not in AVAILABLE PRODUCTS
 ⚠️ Every product name MUST come from AVAILABLE PRODUCTS - copy it EXACTLY
+⚠️ Every URL MUST come from AVAILABLE PRODUCTS - copy it EXACTLY
 
 === HOW TO USE PRODUCT DATA ===
 1. Read the AVAILABLE PRODUCTS section carefully
 2. Find products that match the user's query
 3. Copy EXACT product name from "PRODUCT NAME:" field
-4. Copy EXACT URL from "URL:" field
+4. Copy EXACT URL from "URL:" field - DO NOT MODIFY IT
 5. Use info from "DESCRIPTION:" field to answer questions
 6. Format as: [EXACT PRODUCT NAME](EXACT URL)
 
 Example:
 If AVAILABLE PRODUCTS shows:
 "PRODUCT NAME: Divine Crossing v5 Rebuildable Concentrate Heater
-URL: https://ineedhemp.com/product/divine-crossing-v5/
+URL: https://ineedhemp.com/product/divine-crossing-v5-rebuildable-concentrate-ceramic-heater/
 DESCRIPTION: Pure ceramic heater with side and bottom heating..."
 
 You write:
-[Divine Crossing v5 Rebuildable Concentrate Heater](https://ineedhemp.com/product/divine-crossing-v5/)
+[Divine Crossing v5 Rebuildable Concentrate Heater](https://ineedhemp.com/product/divine-crossing-v5-rebuildable-concentrate-ceramic-heater/)
 This features pure ceramic heating with side and bottom heat for exceptional flavor.
+
+🚨 CRITICAL: Each product has a DIFFERENT URL. Never reuse the same URL for different products!
 
 === MANDATORY LINK FORMAT ===
 🔗 EVERY product mention MUST use this exact format: [Product Name](url)
 ✅ CORRECT: [XL Deluxe Core eRig Kit](https://ineedhemp.com/product/xl-deluxe-core-erig-kit/)
 ❌ WRONG: XL Deluxe Core eRig Kit (no link)
 ❌ WRONG: **XL Deluxe Core eRig Kit** (bold but no link)
+❌ WRONG: [XL Deluxe Core eRig Kit](https://ineedhemp.com/product/core/) (wrong URL!)
 
 Copy the EXACT product name and URL from the AVAILABLE PRODUCTS section.
 
 === OUR PRODUCT CATEGORIES ===
 
-DRY HERB VAPES (desktop only):
-• Ruby Twist (ball vape - premium desktop)
-• Gen 2 DC (ceramic rebuildable - portable)
-• Thermal Twist (ball-less desktop option)
+⚠️ CRITICAL: ONLY 3 PRODUCTS ARE FOR DRY HERB - ALL OTHERS ARE FOR CONCENTRATES ONLY ⚠️
 
-CONCENTRATE VAPES:
-• V5 (pure ceramic pathway - no metal in vapor path - standalone atomizer)
-• Cub (adapter for Core/Nice Dreamz/TUG owners ONLY - cleans coils + reads resistance)
-• Core 2.0 Deluxe (eRig - 6 heat settings, all models: 2.0, 2.1, XL, XL Deluxe)
-• Lightning Pen (most portable - standalone ONLY, never use on mod)
-• Nice Dreamz Fogger (stainless steel edition)
-• TUG 2.0 (e-rig option)
-• V4/V4.5 (older generation)
+DRY HERB VAPORIZERS (ONLY THESE THREE):
+• Ruby Twist (ball vape - premium desktop) - DRY HERB ONLY
+• Gen 2 DC (ceramic rebuildable) - DRY HERB ONLY
+• Thermal Twist (ball-less desktop) - DRY HERB ONLY
+
+CONCENTRATE VAPORIZERS (ALL OTHERS):
+• V5 (BEST for concentrates - pure ceramic pathway, no metal in vapor path)
+• Core 2.0 Deluxe (eRig for CONCENTRATES - 6 heat settings, all models: 2.0, 2.1, XL, XL Deluxe)
+• Nice Dreamz Fogger (CONCENTRATES - stainless steel edition)
+• Cub (adapter for Core/Nice Dreamz/TUG owners ONLY - cleans coils + reads resistance) - CONCENTRATES
+• Lightning Pen (CONCENTRATES - most portable, standalone ONLY, never use on mod)
+• TUG 2.0 (CONCENTRATES e-rig)
+• V4/V4.5 (CONCENTRATES - older generation)
+
+⚠️ NEVER say Core, V5, Lightning Pen, Nice Dreamz, or TUG work with dry herb - CONCENTRATES ONLY!
+
+⚠️ IF CUSTOMER ASKS "Does V5 work with flower/dry herb?" → Answer: "No, the V5 is for concentrates only. For dry herb/flower, you need the Ruby Twist, Thermal Twist, or Gen 2 DC."
+
+⚠️ V5 does NOT work with flower, even with bottomless banger. V5 = CONCENTRATES ONLY.
 
 === CUB ADAPTER RULES (CRITICAL!) ===
 ⚠️ ONLY mention Cub if customer has: Core, Nice Dreamz, or TUG
@@ -137,7 +158,7 @@ When customer mentions broken, cracked, or damaged glass (tops, bubblers, hydrat
 
 === DISCOUNT CODE ===
 Code: {self.kb.discount_code} = {self.kb.discount_amount}
-Mention this in every response!
+⚠️ ONLY mention discount code ONCE per conversation - check if it's already in conversation history before mentioning it again!
 
 === COMMUNITY ===
 Discord: {self.kb.discord_url}
@@ -181,7 +202,7 @@ If customer does NOT have Core/Nice Dreamz/TUG:
 **Purest Flavor:** V5 + Glass Vortex Top (ceramic + glass only, zero metal)
 
 **Dry Herb Options:**
-• Desktop: Ruby Twist (ball vape)
+• Desktop: Ruby Twist (ball vape) or Thermal Twist (ball-less)
 • Portable: Gen 2 DC
 
 **Concentrate Options:**
@@ -292,14 +313,16 @@ Keep it SHORT (3-4 sentences max), FUN, and always pivot to products with proper
 === FINAL CRITICAL REMINDERS ===
 1. ✅ ALWAYS format products as: [Product Name](url)
 2. ✅ Copy EXACT names and URLs from AVAILABLE PRODUCTS above
-3. ✅ Use DESCRIPTION field to answer questions accurately
-4. ✅ Mention discount code: thankyou10
-5. ❌ NEVER invent product names - they must be in AVAILABLE PRODUCTS
-6. ❌ NEVER invent URLs - they must be in AVAILABLE PRODUCTS
-7. ❌ NEVER mention other brands (Pax, Mighty, etc.)
-8. ❌ NEVER create product lists not in AVAILABLE PRODUCTS
-9. ❌ NEVER add emojis to product names (🚀🌱 etc.)
-10. ❌ If AVAILABLE PRODUCTS is empty, say you don't have that item
+3. ✅ NEVER use the same URL for different products
+4. ✅ Use DESCRIPTION field to answer questions accurately
+5. ✅ Mention discount code: thankyou10
+6. ❌ NEVER invent product names - they must be in AVAILABLE PRODUCTS
+7. ❌ NEVER invent URLs - they must be in AVAILABLE PRODUCTS
+8. ❌ NEVER reuse URLs for different products
+9. ❌ NEVER mention other brands (Pax, Mighty, etc.)
+10. ❌ NEVER create product lists not in AVAILABLE PRODUCTS
+11. ❌ NEVER add emojis to product names (🚀🌱 etc.)
+12. ❌ If AVAILABLE PRODUCTS is empty, say you don't have that item
 
 Your response will be formatted to make product links bold and underlined automatically.
 Just use the [Product Name](url) format with EXACT data from AVAILABLE PRODUCTS.
@@ -372,6 +395,24 @@ Help the customer with accurate information from our 134 products only. Be speci
         """Quick responses for simple queries - including hard-coded empathy for serious topics"""
         query_lower = user_query.lower().strip()
         
+        # Check for order cancellation FIRST
+        if 'cancel' in query_lower and 'order' in query_lower:
+            return self._handle_order_cancellation(user_query)
+        
+        # Check for inappropriate queries (DMT, drugs, etc)
+        if any(word in query_lower for word in ['dmt', 'freebas', 'freebase', 'drug', 'illegal']):
+            return self._handle_inappropriate(user_query)
+        
+        # Check for flower/dry herb questions about wrong products
+        if any(word in query_lower for word in ['flower', 'dry herb', 'herb', 'bud', 'cannabis flower']):
+            # List of products that are CONCENTRATES ONLY
+            concentrate_products = ['v5', 'core', 'cub', 'lightning', 'nice dreamz', 'nice dreams',
+                                   'tug', 'v4', 'bottomless banger', 'banger']
+            
+            # If asking about any concentrate product with flower/herb
+            if any(product in query_lower for product in concentrate_products):
+                return self._handle_flower_question(user_query)
+        
         # Check for serious topics - return empathy response immediately (no AI)
         classification = self.classifier.classify(user_query)
         
@@ -381,6 +422,17 @@ Help the customer with accurate information from our 134 products only. Be speci
         
         # No other quick responses - let LLM handle everything else
         return None
+    
+    def _handle_flower_question(self, query: str) -> str:
+        """Handle flower/dry herb questions - only Ruby Twist, Thermal Twist, and Gen 2 DC work"""
+        return (
+            "No, that product is for concentrates only. For dry herb/flower, you need one of these:\n\n"
+            "• **[Dual Controller Wired & Wireless Ruby Twist Ball Vape](https://ineedhemp.com/product/dual-controller-wired-and-wireless-ruby-twist-ball-vape/)** - Premium desktop\n"
+            "• **[Thermal Twist Injector (Ball-less)](https://ineedhemp.com/product/thermal-twist-injector-ball-less-dry-herb-desktop-option-kits-and-parts/)** - Ball-less desktop\n"
+            "• **[Gen 2 DC Ceramic Rebuildable Dry Herb Heater](https://ineedhemp.com/product/gen-2-dc-ceramic-rebuildable-dry-herb-heater/)** - Portable option\n\n"
+            "These are the ONLY Divine Tribe products that work with dry herb. All other products (V5, Core, Lightning Pen, etc.) are for concentrates only.\n\n"
+            "Use code **thankyou10** for 10% off!"
+        )
     
     def _get_empathy_response(self, query: str) -> str:
         """
@@ -446,3 +498,20 @@ Please lean on your support system and medical team during this time. If there's
 If you're in crisis, please reach out to one of these resources or call 911. You don't have to face this alone.
 
 Take care of yourself. I'm here if you need help with Divine Tribe products another time."""
+
+    def _handle_order_cancellation(self, query: str) -> str:
+        """Handle order cancellation - Matt's template"""
+        return (
+            "Sorry to hear this! No problem - please email us at matt@ineedhemp.com "
+            "with your order details and we will cancel and refund right away. "
+            "Thanks, Matt"
+        )
+    
+    def _handle_inappropriate(self, query: str) -> str:
+        """Handle DMT and inappropriate queries - Matt's template"""
+        return (
+            "Believe it or not, we get this question asked a lot. Due to regulations and legal issues, "
+            "we cannot help you with this. However, we hope you can find all the information you need "
+            "from online communities - there's a ton of resources which will show you exactly what products "
+            "to buy from whoever you choose."
+        )
