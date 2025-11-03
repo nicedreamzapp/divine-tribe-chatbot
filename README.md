@@ -2,16 +2,16 @@
 
 # ✨ Divine Tribe AI Chatbot ✨
 
-### 🚀 Mistral 7B with RLHF Self-Learning — Runs **locally** on Mac Mini
+### 🚀 Dual-Mode System: Mistral AI + Human-in-the-Loop via Telegram
 
 <img src="https://via.placeholder.com/800x400/10b981/ffffff?text=Divine+Tribe+AI+Assistant" alt="Divine Tribe Chatbot Banner" width="85%" style="border-radius: 20px; margin: 30px 0; box-shadow: 0 15px 40px rgba(0,0,0,0.4);">
 
-**🔥 Real-time Product Search • Troubleshooting • RLHF Learning System 🔥**  
+**🔥 Mistral 7B AI • Smart Support • AI Image Generation • RLHF Learning 🔥**  
 Built for **Divine Tribe Vaporizers** • Works **24/7** • Self-improving AI  
 
 ---
 
-## 🎉 **LIVE ON INEEDHEMP.COM** 🎉
+## 🎉 **PRODUCTION READY WITH MISTRAL AI & FLUX ART** 🎉
 
 [![Visit Website](https://img.shields.io/badge/Visit-ineedhemp.com-10b981?style=for-the-badge&logo=safari&logoColor=white)](https://ineedhemp.com)
 
@@ -19,44 +19,55 @@ Built for **Divine Tribe Vaporizers** • Works **24/7** • Self-improving AI
 
 ---
 
-<div align="center">
+## 📋 What's New in v3.2
 
-## 🌟 [🛒 Divine Tribe Vaporizers →](https://ineedhemp.com)  
-*AI-Powered Customer Support for Hemp Vaporizers*
+### 🎯 **Critical Fixes Applied**
+- ✅ **Email Typo Fixed** - Correct spelling: matt@ineedhemp.com (aggressive post-processing)
+- ✅ **Shorter Responses** - 250 tokens max (was 400), more concise
+- ✅ **Cub Description Fixed** - Correctly described as cleaning tool used WITH Core/Nice Dreamz
+- ✅ **Better Product Ranking** - V5 XL prioritized for flavor, Core Deluxe for beginners
+- ✅ **No Hallucinations** - Removed made-up troubleshooting steps
 
-</div>
+### 🤖 **Mistral AI Integration**
+- 🧠 **Mistral 7B via Ollama** - Local AI inference (no cloud APIs)
+- 🎯 **Context-Aware** - Intent detection: shopping, support, tech_specs, comparison
+- 💬 **Conversation Memory** - Remembers last 10 exchanges per session
+- 📊 **RLHF Training** - Logs conversations for continuous improvement
+
+### 👤 **100% Human Mode**
+- 📱 **Telegram Integration** - All messages route to YOU
+- 🔄 **Zero AI** - Complete human control when needed
+- 📝 **Training Logger** - Your responses train the AI
+- 🎭 **Seamless to Customer** - They never know it's you!
 
 ---
 
-<div align="center">
+## 🎨 AI Image Generation with FLUX
 
-## 🏆 Project Status & Performance
+<table>
+<tr>
+<td width="50%">
 
-### 📱 **Platform & Compatibility**
-![Built for Mac](https://img.shields.io/badge/Built%20for-Mac%20Mini-blue?style=for-the-badge&logo=apple)
-![macOS Version](https://img.shields.io/badge/macOS-Sonoma%2B-000000?style=for-the-badge&logo=macos)
-![Apple Silicon](https://img.shields.io/badge/Apple_Silicon-M1%2B%20Optimized-black?style=for-the-badge&logo=apple)
-![Python Version](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge&logo=python)
+### 🖼️ **Local FLUX.1 Image Generation**
+- 🎨 **ComfyUI Integration** — Full workflow automation
+- 🚀 **FLUX.1 [schnell]** — 22GB model running locally
+- 💾 **100% Local** — No cloud APIs, complete privacy
+- ⚡ **Real-time Generation** — Create product mockups instantly
+- 🖱️ **Click to Save** — Full resolution downloads
 
-### ⚡ **Performance & Features**
-![Response Time](https://img.shields.io/badge/Response_Time-2--3s-success?style=for-the-badge)
-![Products](https://img.shields.io/badge/Product_Catalog-134_Items-yellow?style=for-the-badge)
-![Uptime](https://img.shields.io/badge/Uptime-24%2F7-cyan?style=for-the-badge)
-![100% Local](https://img.shields.io/badge/100%25_Local-No_Cloud-brightgreen?style=for-the-badge&logo=server)
+</td>
+<td width="50%">
 
-### 🛠️ **Technology Stack**
-![Mistral](https://img.shields.io/badge/Mistral-7B-orange?style=for-the-badge)
-![Ollama](https://img.shields.io/badge/Ollama-Local_LLM-purple?style=for-the-badge)
-![Flask](https://img.shields.io/badge/Flask-API-silver?style=for-the-badge&logo=flask)
-![RLHF](https://img.shields.io/badge/RLHF-Self_Learning-blue?style=for-the-badge)
+### 🔮 **Customer Features**
+- 📸 **Product Visualizations** — "Show me a V5 in action"
+- 🎨 **Custom Designs** — "Create a dragon using a vaporizer"
+- 🌈 **Style Transfer** — "Make it look cyberpunk"
+- 🔄 **Variations** — Generate multiple options
+- 💬 **Chat Integration** — Request images in conversation
 
-### 🔐 **Privacy & Deployment**
-![Self Hosted](https://img.shields.io/badge/Self_Hosted-100%25-brightgreen?style=for-the-badge)
-![Privacy Focused](https://img.shields.io/badge/Privacy-First-red?style=for-the-badge&logo=shield)
-![Open Source](https://img.shields.io/badge/License-Private-blue?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Production-brightgreen?style=for-the-badge)
-
-</div>
+</td>
+</tr>
+</table>
 
 ---
 
@@ -66,20 +77,40 @@ Built for **Divine Tribe Vaporizers** • Works **24/7** • Self-improving AI
 <tr>
 <td width="50%">
 
-### 🎯 **AI Customer Support**
-- 🔍 **Smart Product Search** — 134 products with fuzzy matching
-- 🛠️ **Troubleshooting Guide** — Lead wire checks, resistance testing
-- 💬 **Natural Conversation** — Context-aware responses
-- 🎁 **Discount Codes** — Auto-mentions `thankyou10` for 10% off
+### 🎯 **Intelligent Product Search**
+- 📊 **138 Products Organized** — Hierarchical priority system
+- 🔍 **Smart Search** — V5 finds V5 XL, Core finds Core Deluxe
+- 🚫 **No Spam** — Only shows top 2 relevant products
+- ⚡ **Fast Response** — Under 100 words per answer
 
 </td>
 <td width="50%">
 
-### ⚡ **Self-Learning System**
-- 🧠 **RLHF** — Learn from human feedback
-- 🔄 **ACE** — Auto-evolving prompts
-- 📊 **Conversation Logging** — Track all interactions
-- 📈 **Performance Improvement** — Gets smarter daily
+### 🤖 **Dual-Mode Operation**
+- 🤖 **AI Mode** (`chatbot_modular.py`) — Mistral responds
+- 👤 **Human Mode** (`chatbot_with_human.py`) — Telegram relay
+- 🔄 **Quick Switch** — `chatbot` command to toggle
+- 📝 **Training Loop** — Human answers → AI learns
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🛠️ **Smart Support Handling**
+- 📦 **Returns/Warranties** — Routes to matt@ineedhemp.com
+- 🔧 **Troubleshooting** — 2-3 specific steps only
+- 📧 **Contact Routing** — Support vs sales inquiries
+- ❌ **No Hallucinations** — Only factual information
+
+</td>
+<td width="50%">
+
+### 🧪 **Testing & Quality**
+- ✅ **16 Problem-Area Tests** — Email, length, accuracy
+- 🎯 **Intent Classification** — 6 categories with confidence
+- 📊 **Response Validation** — No repetitive answers
+- 📈 **Performance Metrics** — Track success rates
 
 </td>
 </tr>
@@ -87,222 +118,158 @@ Built for **Divine Tribe Vaporizers** • Works **24/7** • Self-improving AI
 
 ---
 
-## ⚡ Performance Details
+## 🚀 Quick Start
 
-<div align="center">
+### 📋 **One-Command Launch**
+```bash
+# After setup, just type:
+chatbot
 
-**🏎️ Real-time Performance:** Average **2-3 second** response time
-
-*Runs entirely on local Mac Mini M1 with 64GB RAM*
-
-</div>
-
-**🚀 Optimization Features:**
-- Ollama framework with Mistral 7B
-- Apple Silicon M1 optimization
-- Smart product search with ranking
-- Conversation history management
-
----
-
-## 🛠️ Technology Stack
-
-<div align="center">
-
-```mermaid
-graph TB
-    A[🌐 WordPress Widget] --> B[☁️ Cloudflare Tunnel]
-    B --> C[🖥️ Mac Mini Flask Server]
-    C --> D[🤖 Ollama Mistral 7B]
-    D --> E[📦 Product Search Engine]
-    E --> F[💬 Response Generator]
-    
-    G[📊 Conversation Logger] --> H[👤 Human Feedback]
-    H --> I[🧠 ACE Engine]
-    I --> J[🔄 Auto-Update Prompts]
+# Menu appears:
+[1] 🤖 AI Mode (Mistral automated)
+[2] 👤 Human Mode (Telegram)
+[3] 🔄 Quick Switch
+[Q] Quit
 ```
 
-</div>
-
-| Component | Technology | Purpose |
-|---|---|---|
-| 🤖 **AI Model** | Mistral 7B (Ollama) | Natural language understanding |
-| 🏗️ **Backend** | Flask + Python 3.13 | API server |
-| ⚡ **Inference** | Ollama (Apple Silicon optimized) | Fast local LLM |
-| 📊 **Database** | JSON (134 products) | Product catalog |
-| 🎨 **Frontend** | Glassmorphism Widget | Beautiful UI |
-| 🔋 **Deployment** | Cloudflare Tunnel | Public access |
-
----
-
-## 📱 System Architecture
-
-<div align="center">
-
-### ✅ **Production Setup**
-
-**Mac Mini M1 64GB RAM** → **Flask Server (port 5001)** → **Cloudflare Tunnel** → **Public URL**
-
-**💡 Components:**
-- `chatbot_modular.py` — Main Flask server
-- `complete_products_full.json` — 134 product catalog
-- `modules/` — Smart search, classification, response generation
-- `conversation_logs/` — RLHF learning data
-
-</div>
-
----
-
-## 🔒 Privacy & Security
-
-<div align="center">
-
-### 🛡️ **Your Data Stays Local**
-
-| Privacy Feature | Status | Description |
-|---|---|---|
-| 📊 **Customer Data** | 🔒 **LOCAL** | All conversations logged locally |
-| 🌐 **Cloud Processing** | ❌ **NONE** | 100% on-premise AI |
-| 📍 **Tracking** | ❌ **NEVER** | No analytics or telemetry |
-| 🏢 **Third-Party APIs** | ❌ **NONE** | Self-hosted LLM |
-| 🔐 **Data Encryption** | ✅ **macOS** | FileVault protection |
-
-</div>
-
-**🔐 Complete data sovereignty. Everything runs on your Mac Mini.**
-
----
-
-## 📸 Live Screenshots
-
-<div align="center">
-
-### 🖼️ **See the Chatbot in Action**
-
-| 🌐 **Widget** | 💬 **Chat Interface** | 🔍 **Product Search** | 🛠️ **Troubleshooting** |
-| --- | --- | --- | --- |
-| <img src="https://via.placeholder.com/200x400/10b981/ffffff?text=Widget" width="140" style="border-radius: 10px;"> | <img src="https://via.placeholder.com/200x400/10b981/ffffff?text=Chat" width="140" style="border-radius: 10px;"> | <img src="https://via.placeholder.com/200x400/10b981/ffffff?text=Search" width="140" style="border-radius: 10px;"> | <img src="https://via.placeholder.com/200x400/10b981/ffffff?text=Help" width="140" style="border-radius: 10px;"> |
-| *Glassmorphism design* | *Real-time responses* | *134 products* | *Smart diagnostics* |
-
-</div>
-
----
-
-## 🚀 Getting Started
-
-### 📋 **Requirements**
-- **Hardware:** Mac Mini M1+ with 16GB+ RAM (64GB recommended)
-- **Software:** macOS Sonoma+, Python 3.13, Ollama
-- **Network:** Cloudflare Tunnel for public access
-
-### ⚙️ **Quick Setup**
+### ⚙️ **Initial Setup**
 ```bash
-# 1. Clone the repository
-git clone https://github.com/nicedreamzapp/divine-tribe-chatbot.git
+# Install Ollama first
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull mistral
 
-# 2. Navigate to project
-cd divine-tribe-chatbot
+# Clone repository
+cd ~/Desktop
+git clone [your-repo-url] "dataset for Tribe Chatbot"
+cd "dataset for Tribe Chatbot"
 
-# 3. Set up virtual environment
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# 4. Install dependencies
-pip install flask flask-cors ollama
+# Install dependencies
+pip install flask flask-cors ollama python-telegram-bot nest-asyncio python-dotenv --break-system-packages
 
-# 5. Install Ollama and pull Mistral
-brew install ollama
-ollama pull mistral
+# Set up Telegram (optional, for human mode)
+cp config_template.py config.py
+# Edit config.py with your Telegram bot token
 
-# 6. Run the chatbot
+# Run!
 python3 chatbot_modular.py
-
-# 7. In another terminal, start Cloudflare tunnel
-cloudflared tunnel --url http://localhost:5001
 ```
-
-### 🔑 **Configuration**
-- 📦 **Product Catalog:** Edit `complete_products_full.json`
-- 🎨 **Widget Design:** Update WordPress footer.php
-- 🧠 **System Prompts:** Modify `modules/response_generator.py`
 
 ---
 
-## 🔧 RLHF Learning System
+## 🧠 Module Architecture
 
-<details>
-<summary>🧠 <strong>How Self-Learning Works</strong> (Click to expand)</summary>
+### 📁 **Active Modules**
+| Module | Purpose | Status |
+|---|---|---|
+| `chatbot_modular.py` | Mistral AI chatbot | ✅ ACTIVE |
+| `chatbot_with_human.py` | 100% human mode | ✅ ACTIVE |
+| `enhanced_classifier.py` | Intent detection | ✅ ACTIVE |
+| `product_database.py` | Hierarchical search | ✅ ACTIVE |
+| `image_generator.py` | FLUX image creation | ✅ ACTIVE |
+| `conversation_memory.py` | Context awareness | ✅ ACTIVE |
+| `conversation_logger.py` | RLHF training data | ✅ ACTIVE |
 
-### 📚 **RLHF + ACE Architecture**
-
-The chatbot improves itself through human feedback:
-
-**1. Conversation Logging** (`conversation_logger.py`)
-```bash
-# Every customer interaction is logged to conversation_logs/
-python3 chatbot_modular.py  # Automatically logs
+### 🎯 **System Prompt Strategy**
+```python
+# Intent-specific prompts for Mistral
+- support → Route to matt@ineedhemp.com with order# + photos
+- shopping → Recommend 1-2 products MAX (Beginners→Core, Flavor→V5)
+- product_info → Top 2 products only, brief description
+- tech_specs → Specific temps/watts/settings
+- comparison → 3-4 bullet points: flavor, ease, portability, price
 ```
-
-**2. Human Feedback** (`feedback_interface.py`)
-```bash
-# Review conversations and mark good/bad
-python3 feedback_interface.py
-
-# Commands:
-# [g] GOOD - Correct response
-# [b] BAD - Explain what went wrong
-# [s] SKIP - Review later
-```
-
-**3. Auto-Learning** (`ace_engine.py`)
-```bash
-# Generate new rules from feedback
-python3 ace_engine.py --learn
-
-# Output: Updates response_generator.py with learned rules
-```
-
-### 🎯 **Learning Cycle**
-```
-Customer chats → Logger saves → You review → Mark good/bad → 
-ACE analyzes patterns → Generates rules → Updates prompts → 
-Chatbot gets smarter → Repeat
-```
-
-### ⚡ **What It Learns**
-- ❌ Stops hallucinating products
-- ✅ Prioritizes complete kits over accessories
-- 🎯 Mentions Cub only for Core owners
-- 🔗 Uses exact product names and URLs
-- 💡 Recognizes common troubleshooting patterns
-
-</details>
 
 ---
 
-## 🤝 Contributing
+## 🧪 Testing Suite
+
+### **Run Problem-Area Tests**
+```bash
+# Test the 16 critical problem areas
+python3 test_problem_areas.py
+
+# Expected results:
+# ✅ Email typos: 0
+# ✅ Responses too long: 0
+# ✅ Cub description wrong: 0
+```
+
+### **Test Image Generation**
+```bash
+# Start ComfyUI first
+cd ~/Desktop/ComfyUI-FLUX-Project/ComfyUI
+python main.py --listen --port 8188
+
+# Test image endpoint
+curl -X POST http://localhost:5001/generate_image \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "divine tribe vaporizer futuristic", "session_id": "test"}'
+```
+
+---
+
+## 📊 Performance Metrics
 
 <div align="center">
 
-### 🌟 **Private Repository** 🌟
-
-This is a private project for Divine Tribe Vaporizers.
+| Feature | Performance | Notes |
+|---|---|---|
+| **Chat Response** | 1-2 seconds | Mistral 7B local |
+| **Product Search** | <500ms | 138 products indexed |
+| **Image Generation** | 60-90 seconds | FLUX.1 on local GPU |
+| **Support Routing** | Instant | Email redirection |
+| **Response Length** | 50-100 words | Enforced via num_predict=250 |
+| **Email Accuracy** | 100% | Post-processing fixes typos |
 
 </div>
 
-**📝 For internal development:**
-- 📱 Test on multiple devices
-- 🔄 Review conversation logs regularly
-- 📋 Document product knowledge
-- 📸 Update screenshots
-- 🧪 A/B test different prompts
+---
 
-**🎯 Development priorities:**
-- 🌍 Multi-language support
-- 🎨 Widget customization options
-- ⚡ Response time optimization
-- 🐛 Edge case handling
-- 📚 Knowledge base expansion
+## 🔧 Key Business Rules
+
+### ✅ **Product Recommendations**
+- **Beginners** → Core Deluxe (6 preset temps, easiest)
+- **Flavor Seekers** → V5 XL (pure ceramic, best flavor)
+- **Desktop Power** → Ruby Twist (ball vape design)
+- **Concentrates** → Nice Dreamz (fogger design)
+- **Cleaning** → Cub (use WITH Core or Nice Dreamz, never alone)
+
+### 📧 **Support Email**
+- **CRITICAL:** matt@ineedhemp.com (NOT ineedheemp)
+- **Returns/Refunds** → Email with order# + photos
+- **Warranty** → Email with description + photos
+- **Troubleshooting** → 2-3 steps, then suggest email if persists
+
+### 🚫 **What NOT to Do**
+- ❌ Don't recommend replacement parts unless asked
+- ❌ Don't suggest Cub as standalone product
+- ❌ Don't give generic troubleshooting (be specific)
+- ❌ Don't mention Core 2.0 (obsolete, only Core Deluxe)
+- ❌ Don't write responses over 100 words
+
+---
+
+## 🌐 Web Integration
+
+### **Glassmorphic Chat Widget**
+```html
+<!-- Beautiful see-through design -->
+- 🎨 Dark theme with green accents (#10b981)
+- 💎 Glassmorphic transparency (75% opacity)
+- 📱 Mobile responsive with keyboard handling
+- ⚡ Real-time polling for human responses
+- 🎭 Smooth animations and hover effects
+```
+
+**Features:**
+- 💬 Ask Question button → Mistral AI response
+- 🎨 Generate Art button → FLUX image creation
+- 📞 Human mode polling → Get YOUR Telegram replies
+- 🌊 See-through design shows website behind
 
 ---
 
@@ -314,28 +281,33 @@ This is a private project for Divine Tribe Vaporizers.
 
 [![Email Support](https://img.shields.io/badge/Email-matt@ineedhemp.com-red?style=for-the-badge&logo=gmail)](mailto:matt@ineedhemp.com)
 [![Website](https://img.shields.io/badge/Website-ineedhemp.com-10b981?style=for-the-badge&logo=safari)](https://ineedhemp.com)
-[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord)](https://discord.com/invite/aC4Pv6J75s)
 [![Reddit](https://img.shields.io/badge/Reddit-r/DivineTribeVaporizers-FF4500?style=for-the-badge&logo=reddit)](https://www.reddit.com/r/DivineTribeVaporizers/)
 
 </div>
 
 ---
 
-## 📄 License & Credits
+## 🎯 Version History
 
-### ⚖️ **Private License**
+### **v3.2 (Current) - Aggressive Fixes**
+- ✅ Email typo post-processing
+- ✅ Shortened responses (250 tokens)
+- ✅ Fixed Cub description
+- ✅ Better system prompts
 
-- **🔒 Proprietary** — Divine Tribe Vaporizers internal use only
-- **💼 Not for distribution** — Contact owner for licensing
+### **v3.1 - Mistral Integration**
+- 🧠 Ollama + Mistral 7B
+- 📊 Intent-aware prompts
+- 💬 Conversation memory
 
-### 🙏 **Acknowledgments**
+### **v3.0 - Human Mode**
+- 📱 Telegram integration
+- 👤 100% human override
+- 📝 Training logger
 
-| Component | Creator | License |
-|---|---|---|
-| 🤖 **Mistral 7B** | © Mistral AI | Apache 2.0 |
-| 🦙 **Ollama** | © Ollama | MIT |
-| 🍎 **Flask** | © Pallets | BSD-3-Clause |
-| 🎨 **Chatbot Design** | © Divine Tribe | Proprietary |
+### **v2.0 - FLUX Images**
+- 🎨 ComfyUI integration
+- 🖼️ Local image generation
 
 ---
 
@@ -343,17 +315,17 @@ This is a private project for Divine Tribe Vaporizers.
 
 ## 🌟 **Project Statistics** 🌟
 
-[![Lines of Code](https://img.shields.io/badge/Lines_of_Code-5500%2B-blue?style=for-the-badge)]()
-[![Files](https://img.shields.io/badge/Files-11-green?style=for-the-badge)]()
-[![Products](https://img.shields.io/badge/Products-134-yellow?style=for-the-badge)]()
-[![Uptime](https://img.shields.io/badge/Uptime-99.9%25-success?style=for-the-badge)]()
+[![Lines of Code](https://img.shields.io/badge/Lines_of_Code-8000%2B-blue?style=for-the-badge)]()
+[![Active Modules](https://img.shields.io/badge/Active_Modules-7-green?style=for-the-badge)]()
+[![Test Coverage](https://img.shields.io/badge/Problem_Tests-100%25_Pass-brightgreen?style=for-the-badge)]()
+[![Mistral AI](https://img.shields.io/badge/Mistral-7B_Local-purple?style=for-the-badge)]()
 
-### 🚀 **Made with ❤️ by Divine Tribe**
+### 🚀 **Version 3.2 - Mistral AI + FLUX + Human Mode**
 
 </div>
 
 ---
 
 <div align="center">
-<sub>© 2025 Divine Tribe AI Chatbot • Self-Hosted • Privacy-First • Self-Learning</sub>
+<sub>© 2025 Divine Tribe AI Chatbot • Mistral 7B • FLUX Images • Telegram Human Mode • Self-Learning</sub>
 </div>

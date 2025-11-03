@@ -15,7 +15,7 @@ class ConversationLogger:
         os.makedirs(log_dir, exist_ok=True)
         print(f"✓ Conversation Logger initialized - saving to {log_dir}/")
     
-    def log_conversation(self, 
+    def log_conversation(self,
                         session_id: str,
                         user_query: str,
                         bot_response: str,
@@ -30,6 +30,20 @@ class ConversationLogger:
         timestamp = datetime.now()
         chat_id = f"{session_id}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
         
+        # Handle products_shown - can be list of dicts OR list of strings
+        if products_shown:
+            if isinstance(products_shown[0], dict):
+                # List of product dicts
+                product_names = [p['name'] for p in products_shown]
+                product_urls = [p['url'] for p in products_shown]
+            else:
+                # List of product name strings (already extracted)
+                product_names = products_shown
+                product_urls = []
+        else:
+            product_names = []
+            product_urls = []
+        
         # Create log entry
         log_entry = {
             'chat_id': chat_id,
@@ -37,8 +51,8 @@ class ConversationLogger:
             'timestamp': timestamp.isoformat(),
             'user_query': user_query,
             'bot_response': bot_response,
-            'products_shown': [p['name'] for p in products_shown] if products_shown else [],
-            'product_urls': [p['url'] for p in products_shown] if products_shown else [],
+            'products_shown': product_names,
+            'product_urls': product_urls,
             'intent': intent,
             'confidence': confidence,
             'feedback': None,  # Will be filled by feedback_interface
@@ -150,4 +164,3 @@ class ConversationLogger:
             'without_feedback': total_conversations - total_with_feedback,
             'days_logged': len(log_files)
         }
-
