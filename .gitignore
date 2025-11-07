@@ -1,7 +1,8 @@
-*.pyc
-venv/
+config.py
+.env
 conversation_logs/
-*.env
-telegram*.py
-*.json
+stress_test_*.json
+*.pkl
+__pycache__/
+*.pyc
 .DS_Store

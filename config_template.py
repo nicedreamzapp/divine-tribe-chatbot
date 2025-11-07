@@ -1,22 +1,25 @@
 """
 Configuration Template for Divine Tribe Chatbot
-Copy this to config.py and fill in your actual values
+Copy this to config.py and fill in your values
 """
 
-# Telegram Bot Settings
+# Telegram Configuration
 TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
 TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE"
 
-# Business Settings  
-SUPPORT_EMAIL = "your-email@domain.com"
-WEBSITE_URL = "https://your-website.com"
-REDDIT_COMMUNITY = "r/YourCommunity"
+# Flask Configuration
+FLASK_HOST = "0.0.0.0"
+FLASK_PORT = 5001
 
-# API Keys (if needed)
-OPENAI_API_KEY = "YOUR_API_KEY_HERE"
+# Mistral Configuration
+MISTRAL_MODEL = "mistral"
+MISTRAL_TEMPERATURE = 0.7
+MISTRAL_MAX_TOKENS = 200
+
+# ComfyUI Configuration
 COMFYUI_URL = "http://localhost:8188"
 
-# Product Database
-PRODUCTS_FILE = "products_organized.json"
-
-# Don't commit the actual config.py file!
+# Business Rules
+SUPPORT_EMAIL = "matt@ineedhemp.com"
+COMPANY_NAME = "Divine Tribe"
+COMPANY_URL = "https://ineedhemp.com"
