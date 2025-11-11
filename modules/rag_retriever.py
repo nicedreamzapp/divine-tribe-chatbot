@@ -129,17 +129,64 @@ class RAGRetriever:
         6. Return top_k results
         """
         query_lower = query.lower().strip()
+
+        # STAGE 0: Title keyword search (FIRST - most direct match)
+        query_words = set(query_lower.split())
+        title_matches = []
+        
+        for product in self.products:
+            title_lower = product['name'].lower()
+            title_words = set(title_lower.split())
+            matching_words = query_words & title_words
+            
+            if matching_words and len(matching_words) >= len(query_words) * 0.5:  # At least 50% of words match
+                score = len(matching_words) / len(query_words)
+                title_matches.append((product, score))
+        
+        if title_matches:
+            title_matches.sort(key=lambda x: x[1], reverse=True)
+            results = [m[0] for m in title_matches[:top_k]]
+            print(f"📌 Found {len(results)} title matches for '{query}'")
+            return results
+        
         
         # STAGE 1: Canonical exact match (highest confidence)
         canonical_id = self.canonical_map.get(query_lower)
         if canonical_id:
             product = self.product_index[canonical_id]
             print(f"🎯 CANONICAL MATCH: {product['name']}")
-            # Return ONLY the canonical product (no related products)
             return [product]
         
+        # STAGE 1.5: Check for comparison queries (v5 vs v5 xl)
+        if ' vs ' in query_lower or ' versus ' in query_lower or 'difference between' in query_lower:
+            # Extract both product names
+            if 'v5 xl' in query_lower and 'v5' in query_lower:
+                v5_id = self.canonical_map.get('v5')
+                v5xl_id = self.canonical_map.get('v5 xl')
+                if v5_id and v5xl_id:
+                    print(f"🎯 COMPARISON MATCH: V5 vs V5 XL")
+                    return [self.product_index[v5xl_id]]  # Return XL since it's the upgrade
+        
         # STAGE 2: Hybrid retrieval
-        candidates = self._get_hybrid_candidates(query, top_k * 3)  # Get more candidates for reranking
+        candidates = self._get_hybrid_candidates(query, top_k * 3)
+        
+        # DEDUPLICATE by URL (remove duplicate products)
+        candidates = self._deduplicate_by_url(candidates)
+        
+        # CATEGORY FILTERING (hemp, jars, glass, etc.)
+        if context and context.get('category_filter'):
+            candidates = self._filter_by_category(candidates, context['category_filter'])
+        
+        # FILTER OUT WRONG PRODUCTS BEFORE RANKING
+        query_lower = query.lower()
+        
+        # Filter 1: Dry herb queries - ONLY Ruby Twist and Gen 2
+        if any(x in query_lower for x in ['flower', 'herb', 'dry herb', 'bud']):
+            candidates = [c for c in candidates if any(x in c.get('name', '').lower() for x in ['ruby twist', 'gen 2', 'dc gen'])]
+        
+        # Filter 2: Remove SiC products UNLESS specifically asking about SiC/upgrades
+        elif not any(x in query_lower for x in ['sic', 'silicon carbide', 'insert', 'upgrade', 'cup option']):
+            candidates = [c for c in candidates if 'sic' not in c.get('name', '').lower() and 'silicon carbide' not in c.get('name', '').lower()]  # Get more candidates for reranking
         
         # STAGE 3: Rerank candidates using multiple signals
         ranked_results = self._rerank_candidates(query, candidates, context)
@@ -159,6 +206,67 @@ class RAGRetriever:
     def _get_hybrid_candidates(self, query: str, top_k: int) -> List[Dict]:
         """Get candidates from both semantic and lexical search"""
         candidates_dict = {}  # product_id -> (product, score)
+        query_lower = query.lower()
+        
+        # CRITICAL FIX: For concentrate queries, force include priority products
+        concentrate_keywords = ['wax', 'concentrate', 'dabs', 'dab', 'oil', 'shatter', 'budder', 'rosin']
+        is_concentrate_query = any(kw in query_lower for kw in concentrate_keywords)
+        
+        if is_concentrate_query:
+            # Force return ONLY the 5 priority concentrate products
+            priority_products = self._get_priority_concentrate_products()
+            if priority_products:
+                return priority_products
+        
+        # Regular hybrid search for non-concentrate queries
+        concentrate_keywords = ['wax', 'concentrate', 'dabs', 'dab', 'oil', 'shatter', 'budder', 'rosin',
+                               'sauce', 'crumble', 'distillate', 'live resin', 'hash oil']
+        is_concentrate_query = any(kw in query_lower for kw in concentrate_keywords)
+        
+        if is_concentrate_query:
+            # STRICT WHITELIST: Only force these exact main products into candidates
+            for product in self.products:
+                if product.get('priority') in [1, 1.5]:
+                    name = product['name']
+                    
+                    # Check against strict whitelist - ONLY complete vaporizers
+                    is_main_vaporizer = (
+                        # V5 XL Complete Kit (TOP PRIORITY)
+                        ('XL v5 Rebuildable Heater, Pico Plus & Hubble Bubble Kit' in name) or
+                        
+                        # Core Deluxe Complete Kit
+                        ('XL Deluxe Core eRig Kit' in name and 'Heat Settings' in name) or
+                        
+                        # V5 XL Heater Only (for existing battery owners)
+                        ('Divine Crossing XL v5 Rebuildable Concentrate Heater' == name) or
+                        
+                        # Lightning Pen
+                        ('Divine Crossing Lightning Pen Stainless Steel Diffuser for Concentrate' in name and 'Replacement' not in name) or
+                        ('Lightning Pen Stainless Steel Diffuser for Concentrates (Past customer' in name) or
+                        
+                        # Nice Dreamz Fogger (main unit only, not accessories)
+                        ('Nice Dreamz Fogger' in name and 'Glass Top Accessories' not in name and 'Replacement' not in name) or
+                        
+                        # The Tug
+                        ('The Tug' in name and 'Replacement' not in name and 'TUG 2.0' not in name)
+                    )
+                    
+                    # EXCLUDE replacement parts, accessories, upgrades
+                    is_excluded = (
+                        'Replacement' in name or
+                        'replacement' in name.lower() or
+                        'Cup Sets' in name or
+                        'SIC' in name or
+                        'Silicon Carbide' in name or
+                        'Glass Top Accessories' in name or
+                        'Polished XL' in name
+                    )
+                    
+                    if is_main_vaporizer and not is_excluded:
+                        product_id = product['id']
+                        # Give higher base score to complete kits
+                        base_score = 1.0 if 'Kit' in name else 0.7
+                        candidates_dict[product_id] = (product, base_score)
         
         # Get semantic candidates (if available)
         if self.vector_store and self.vector_store.embeddings:
@@ -167,7 +275,13 @@ class RAGRetriever:
             for product_id, score in semantic_results:
                 if product_id in self.product_index:
                     product = self.product_index[product_id]
-                    candidates_dict[product_id] = (product, score * self.weights['semantic'])
+                    weighted_score = score * self.weights['semantic']
+                    
+                    if product_id in candidates_dict:
+                        # Add to existing score
+                        candidates_dict[product_id] = (product, candidates_dict[product_id][1] + weighted_score)
+                    else:
+                        candidates_dict[product_id] = (product, weighted_score)
         
         # Get lexical candidates (keyword matching)
         lexical_results = self._lexical_search(query, top_k=top_k)
@@ -280,6 +394,40 @@ class RAGRetriever:
                 'battery': 100
             }
             
+            # CRITICAL: Boost main products based on material type
+            
+            # Concentrate keywords (wax, dabs, rosin, etc)
+            concentrate_keywords = ['wax', 'concentrate', 'dabs', 'dab', 'oil', 'shatter', 'budder', 'rosin',
+                                   'sauce', 'crumble', 'distillate', 'live resin', 'hash oil']
+            is_concentrate_query = any(kw in query_lower for kw in concentrate_keywords)
+            
+            # Dry herb keywords (flower only)
+            flower_keywords = ['flower', 'dry herb', 'herb', 'bud']
+            is_flower_query = any(kw in query_lower for kw in flower_keywords)
+            
+            # Concentrate vaporizers (V5, Core, Nice Dreamz, Tug, Lightning Pen)
+            concentrate_devices = ['v5', 'core', 'nice dreamz', 'tug', 'lightning pen', 'deluxe']
+            is_concentrate_device = any(dev in name for dev in concentrate_devices)
+            
+            # Flower vaporizers (Ruby Twist, Gen 2 DC)
+            flower_devices = ['ruby twist', 'gen 2', 'dc gen']
+            is_flower_device = any(dev in name for dev in flower_devices)
+            
+            # Boost concentrate devices for concentrate queries
+            if is_concentrate_query and is_concentrate_device and product.get('priority') in [1, 1.5]:
+                score += 800
+            
+            # Boost flower devices for flower queries
+            if is_flower_query and is_flower_device:
+                score += 800
+            
+            # PENALIZE wrong device type for the query
+            if is_concentrate_query and is_flower_device:
+                score -= 1000  # Don't show Ruby Twist for "wax"
+            
+            if is_flower_query and is_concentrate_device:
+                score -= 1000  # Don't show V5 for "flower"
+            
             for keyword, boost in boosts.items():
                 if keyword in query_lower and keyword in name:
                     score += boost
@@ -296,6 +444,71 @@ class RAGRetriever:
         scored_candidates.sort(key=lambda x: x[1], reverse=True)
         
         return [p for p, _ in scored_candidates]
+    
+
+    def _filter_by_category(self, candidates: List[Dict], category_filter: str) -> List[Dict]:
+        """Filter candidates by category"""
+        if not category_filter:
+            return candidates
+        
+        filtered = []
+        
+        if category_filter == 'hemp_clothing':
+            clothing_keywords = ['shirt', 'boxer', 'hoodie', 'tank', 'apparel', 'clothing']
+            for product in candidates:
+                if any(kw in product['name'].lower() for kw in clothing_keywords):
+                    filtered.append(product)
+        
+        elif category_filter == 'jars':
+            for product in candidates:
+                if 'jar' in product['name'].lower() or 'container' in product['name'].lower():
+                    filtered.append(product)
+        
+        elif category_filter == 'glass':
+            for product in candidates:
+                if any(kw in product['name'].lower() for kw in ['glass', 'bubbler', 'adapter']):
+                    filtered.append(product)
+        
+        return filtered if filtered else candidates
+
+
+    def _deduplicate_by_url(self, products: List[Dict]) -> List[Dict]:
+        """Remove duplicate products by URL, keeping highest priority"""
+        seen_urls = {}
+        for product in products:
+            url = product.get('url', '')
+            if not url:
+                continue
+            
+            if url not in seen_urls:
+                seen_urls[url] = product
+            else:
+                # Keep product with higher priority (lower number = higher priority)
+                existing_priority = seen_urls[url].get('priority', 999)
+                current_priority = product.get('priority', 999)
+                if current_priority < existing_priority:
+                    seen_urls[url] = product
+        
+        return list(seen_urls.values())
+    
+    def _get_priority_concentrate_products(self) -> List[Dict]:
+        """Get the exact 5 priority concentrate products in order"""
+        priority_urls = [
+            "https://ineedhemp.com/product/divine-crossing-xl-v5-rebuildable-heater-istick-pico-plus-power-supply/",
+            "https://ineedhemp.com/product/recycler-top-core-erig/",
+            "https://ineedhemp.com/product/the-original-nice-dreamz-essential-oil-fogger/",
+            "https://ineedhemp.com/product/crossing-tug-2-0-e-rig/",
+            "https://ineedhemp.com/product/lightning-pen-stainless-steel-diffuser-for-concentrates/"
+        ]
+        
+        priority_products = []
+        for url in priority_urls:
+            for product in self.products:
+                if product.get('url') == url:
+                    priority_products.append(product)
+                    break
+        
+        return priority_products
     
     def _apply_business_rules(self, query: str, products: List[Dict]) -> List[Dict]:
         """Apply business rules from metadata"""
