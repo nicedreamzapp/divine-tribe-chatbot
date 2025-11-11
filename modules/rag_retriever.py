@@ -48,6 +48,37 @@ class RAGRetriever:
         
         print(f"✅ RAG Retriever loaded {len(products)} products")
     
+    def _extract_product_nouns(self, query: str):
+        """Extract product keywords"""
+        keywords_dict = {
+            'materials': ['hemp', 'silk', 'cotton', 'bamboo'],
+            'clothing': ['shirt', 'hoodie', 'boxer', 'pants', 'tank', 'fleece'],
+            'vape_products': ['v5', 'core', 'tug', 'fogger', 'lightning', 'ruby'],
+            'accessories': ['jar', 'glass', 'bubbler', 'battery', 'charger'],
+        }
+        found = []
+        query_lower = query.lower()
+        for category, keywords in keywords_dict.items():
+            for kw in keywords:
+                if kw in query_lower:
+                    found.append(kw)
+        return found
+    
+    def _title_first_search(self, query: str, top_k: int):
+        """Search product titles for extracted keywords"""
+        keywords = self._extract_product_nouns(query)
+        if not keywords:
+            return []
+        
+        matches = []
+        for product in self.products:
+            score = sum(1 for kw in keywords if kw in product['name'].lower())
+            if score > 0:
+                matches.append((product, score))
+        
+        matches.sort(key=lambda x: x[1], reverse=True)
+        return [m[0] for m in matches[:top_k]]
+    
     def _build_canonical_map(self):
         """Build canonical product name mappings"""
         main_products = [p for p in self.products if p.get('priority') == 1]
@@ -172,10 +203,6 @@ class RAGRetriever:
         
         # DEDUPLICATE by URL (remove duplicate products)
         candidates = self._deduplicate_by_url(candidates)
-        
-        # CATEGORY FILTERING (hemp, jars, glass, etc.)
-        if context and context.get('category_filter'):
-            candidates = self._filter_by_category(candidates, context['category_filter'])
         
         # FILTER OUT WRONG PRODUCTS BEFORE RANKING
         query_lower = query.lower()
@@ -445,33 +472,6 @@ class RAGRetriever:
         
         return [p for p, _ in scored_candidates]
     
-
-    def _filter_by_category(self, candidates: List[Dict], category_filter: str) -> List[Dict]:
-        """Filter candidates by category"""
-        if not category_filter:
-            return candidates
-        
-        filtered = []
-        
-        if category_filter == 'hemp_clothing':
-            clothing_keywords = ['shirt', 'boxer', 'hoodie', 'tank', 'apparel', 'clothing']
-            for product in candidates:
-                if any(kw in product['name'].lower() for kw in clothing_keywords):
-                    filtered.append(product)
-        
-        elif category_filter == 'jars':
-            for product in candidates:
-                if 'jar' in product['name'].lower() or 'container' in product['name'].lower():
-                    filtered.append(product)
-        
-        elif category_filter == 'glass':
-            for product in candidates:
-                if any(kw in product['name'].lower() for kw in ['glass', 'bubbler', 'adapter']):
-                    filtered.append(product)
-        
-        return filtered if filtered else candidates
-
-
     def _deduplicate_by_url(self, products: List[Dict]) -> List[Dict]:
         """Remove duplicate products by URL, keeping highest priority"""
         seen_urls = {}
