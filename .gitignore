@@ -6,3 +6,21 @@ stress_test_*.json
 __pycache__/
 *.pyc
 .DS_Store
+
+# .NET specific
+bin/
+obj/
+*.user
+*.suo
+*.cache
+.vs/
+.vscode/
+*.DotSettings.user
+
+# Configuration secrets (keep appsettings.json template)
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# Human responses
+human_responses/
