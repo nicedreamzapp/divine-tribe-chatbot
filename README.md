@@ -1,413 +1,244 @@
 # 🤖 Divine Tribe AI Chatbot
 
-> Enterprise-grade conversational AI with 95% accuracy, hybrid RAG, and human-in-the-loop training
+Product recommendation chatbot with RAG search, cached answers, and AI image generation.
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/flask-3.0+-green.svg)](https://flask.palletsprojects.com/)
-[![Mistral AI](https://img.shields.io/badge/Mistral-Large%202-orange.svg)](https://mistral.ai/)
-[![Success Rate](https://img.shields.io/badge/accuracy-95%25-brightgreen.svg)](https://github.com/nicedreamzapp/divine-tribe-chatbot)
 
-## 📊 Performance at a Glance
+## What It Does
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| **Overall Accuracy** | 95% | 🟢 Production Ready |
-| **Response Time (Cached)** | <0.1s | ⚡ Lightning Fast |
-| **Response Time (RAG)** | 0.3-0.5s | 🚀 Optimized |
-| **Cached Answers** | 426+ | 📚 Growing |
-| **Total Products** | 146 | 🛍️ Deduplicated |
+- Recommends products based on natural language queries
+- Generates custom artwork with FLUX/ComfyUI
+- Caches common answers for instant responses
+- Learns from conversation logs
 
-## 🎯 What Makes This Different
+**Live:** https://chat.marijuanaunion.com
 
-```mermaid
-graph LR
-    A[User Query] --> B{Intent Classification}
-    B -->|Cached| C[CAG: <0.1s ⚡]
-    B -->|Shopping| D[Hybrid RAG]
-    B -->|Support| E[Troubleshooting]
-    
-    D --> F[Semantic Search]
-    D --> G[Lexical Search]
-    D --> H[Priority Boost]
-    
-    F --> I[Rerank & Dedupe]
-    G --> I
-    H --> I
-    
-    I --> J[Mistral LLM]
-    C --> J
-    E --> J
-    
-    J --> K[Response]
-    K --> L[Telegram Logging]
-    L --> M[RLHF Training Data]
-```
+## Tech Stack
 
-## 🏗️ Architecture
+| Component | Technology |
+|-----------|-----------|
+| LLM | Ollama (Mistral local) |
+| Embeddings | sentence-transformers |
+| Search | Hybrid semantic + keyword |
+| Cache | CAG (instant answers) |
+| Backend | Flask + Python 3.9+ |
+| Image Gen | ComfyUI + FLUX |
+| SSL | Nginx + Let's Encrypt |
 
-### Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **LLM** | Mistral Large 2 (128k) | Response generation |
-| **Embeddings** | sentence-transformers | Semantic search |
-| **Vector Store** | Custom (cosine similarity) | Product matching |
-| **Cache** | CAG (Cached Answer Generation) | Instant responses |
-| **Backend** | Flask + Python 3.9+ | API server |
-| **Training Pipeline** | Telegram + RLHF | Human feedback loop |
-| **Fine-tuning** | MLX (local) | Model optimization |
-
-### System Flow
+## Architecture
 
 ```
-┌─────────────┐
-│ User Query  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────────┐
-│ Preprocessing   │ ◄── Normalize, extract entities
-└──────┬──────────┘
-       │
-       ▼
-┌─────────────────┐
-│ Intent (5-sig)  │ ◄── URL, cache, product, hints, context
-└──────┬──────────┘
-       │
-       ├──────────────┬───────────────┬──────────────┐
-       ▼              ▼               ▼              ▼
-   ┌───────┐     ┌────────┐     ┌──────────┐   ┌────────┐
-   │ Cache │     │ RAG    │     │ Support  │   │ Image  │
-   │ <0.1s │     │ Search │     │ Docs     │   │ Gen    │
-   └───┬───┘     └───┬────┘     └────┬─────┘   └───┬────┘
-       │             │                │             │
-       └─────────────┴────────────────┴─────────────┘
-                            ▼
-                    ┌──────────────┐
-                    │ Mistral LLM  │
-                    └──────┬───────┘
-                           ▼
-                    ┌──────────────┐
-                    │   Response   │
-                    └──────┬───────┘
-                           ▼
-                    ┌──────────────┐
-                    │   Telegram   │ ◄── Human feedback
-                    │   Logging    │
-                    └──────┬───────┘
-                           ▼
-                    ┌──────────────┐
-                    │ RLHF Training│ ◄── Fine-tune model
-                    └──────────────┘
+User Query
+    ↓
+Intent Classification
+    ↓
+┌─────────┬──────────┬──────────┐
+│ Cache   │ RAG      │ Image    │
+│ <0.1s   │ Search   │ Gen      │
+└────┬────┴────┬─────┴────┬─────┘
+     │         │          │
+     └─────────┴──────────┘
+              ↓
+         Mistral LLM
+              ↓
+          Response
 ```
 
-## 🧠 Intelligence Layers
-
-### 1. Multi-Signal Intent Classification
-
-| Signal | Confidence | Trigger |
-|--------|-----------|---------|
-| URL detected | 1.0 | `ineedhemp.com/product/*` |
-| CAG cache hit | 0.95 | Exact query match |
-| Product mention | 0.8 | "v5", "core", "tug" |
-| Intent hints | 0.6 | "best", "how to", "broken" |
-| Context | 0.5 | Previous conversation |
-
-### 2. Hybrid RAG Retrieval
-
-```python
-Final_Score = (
-    Semantic_Score × 0.4 +     # Meaning-based
-    Lexical_Score × 0.3 +      # Keyword-based
-    Priority_Score × 0.2 +     # Business rules
-    Context_Score × 0.1        # Conversation history
-)
-```
-
-### 3. Product Priority System
-
-| Priority | Category | Use Case | Examples |
-|----------|----------|----------|----------|
-| **1** | Complete Devices | Ready to use | V5 XL Kit, Core Deluxe, Lightning Pen |
-| **1.5** | Premium Bundles | Deluxe packages | Recycler Top Core, Ruby Twist Kit |
-| **2** | Accessories | Add-ons | Jars, Glass, Batteries |
-| **3** | Replacement Parts | Maintenance | Coils, O-rings, Cups |
-
-## 📈 Success Metrics
-
-### Before vs After Fixes
-
-| Query Type | Before | After | Improvement |
-|------------|--------|-------|-------------|
-| Concentrate Shopping | 30% | 95% | **+217%** |
-| Product Info | 75% | 98% | +31% |
-| Troubleshooting | 65% | 90% | +38% |
-| Accessory Search | 80% | 93% | +16% |
-
-### Top Performing Features
-
-```
-CAG Cache Hit Rate        ████████████████████ 80%
-URL Deduplication         ████████████████████ 100%
-Intent Classification     ███████████████████░ 95%
-Context Awareness         ███████████████░░░░░ 75%
-Response Accuracy         ███████████████████░ 95%
-```
-
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
 ```bash
-# Clone repo
 git clone https://github.com/nicedreamzapp/divine-tribe-chatbot.git
 cd divine-tribe-chatbot
 
-# Setup virtual environment
 python3 -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate
 
-# Install dependencies
-pip install flask mistralai sentence-transformers numpy
+pip install flask flask-cors ollama sentence-transformers numpy markdown
 ```
 
-### Environment Variables
+### Run Locally
 
 ```bash
-export MISTRAL_API_KEY="your_api_key_here"
-export TELEGRAM_BOT_TOKEN="your_telegram_token"  # Optional: for RLHF
-```
-
-### Run
-
-```bash
+# Start chatbot
 python chatbot_modular.py
-# Server starts on http://localhost:5001
+# Runs on http://localhost:5001
 ```
 
-### Test
+### Production Setup (VPS + HTTPS)
 
-```python
-from modules.product_database import ProductDatabase
+**Requirements:**
+- VPS (Ubuntu 24.04+)
+- Domain/subdomain pointed to VPS IP
 
-db = ProductDatabase('products_organized.json')
-results = db.search('best for wax', max_results=5)
-
-for i, r in enumerate(results, 1):
-    print(f"{i}. {r['name']}")
+**1. Install Nginx + Certbot**
+```bash
+sudo apt update
+sudo apt install nginx certbot python3-certbot-nginx -y
 ```
 
-**Expected Output:**
-```
-1. XL v5 Rebuildable Heater, Pico Plus & Hubble Bubble Kit
-2. XL Deluxe Core eRig Kit
-3. The Original Nice Dreamz Concentrate Fogger
-4. TUG 2.0 XL Deluxe E-Rig
-5. Divine Crossing Lightning Pen
+**2. Configure Nginx**
+```bash
+sudo nano /etc/nginx/sites-available/chatbot
 ```
 
-## 🔍 Query Examples
+```nginx
+server {
+    listen 80;
+    server_name your-subdomain.com;
 
-| Query | Response Type | Time |
-|-------|---------------|------|
-| `"best for wax"` | Shows top 5 concentrate devices | 0.4s |
-| `"what is the v5 xl"` | Product info from cache | 0.08s |
-| `"v5 vs v5 xl"` | Comparison from cache | 0.09s |
-| `"my v5 won't heat"` | Troubleshooting guide | 0.5s |
-| `"UV jars"` | Accessory search (deduplicated) | 0.3s |
-
-## 🎨 Key Features
-
-### ✨ Intelligent Product Recommendations
-
-- **Material-aware routing**: Automatically detects concentrate vs dry herb
-- **Context memory**: Remembers user preferences across conversation
-- **Follow-up understanding**: "tell me more" knows what "it" refers to
-- **Beginner-friendly**: Recommends complete kits to new users
-
-### ⚡ CAG Cache (Cached Answer Generation)
-
-```
-Query: "what is the v5 xl"
-  ↓
-Cache Check: HIT ✓
-  ↓
-Response: <0.1s (426+ cached answers)
-  ↓
-No LLM call needed → instant + free
+    location / {
+        proxy_pass http://localhost:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
 ```
 
-### 🧩 URL Deduplication
-
-**Before:** 782 products (50+ variations per device)  
-**After:** 146 products (1 per unique URL)
-
-```diff
-- XL v5 Kit - Black
-- XL v5 Kit - White
-- XL v5 Kit - Red
-- XL v5 Kit - Blue
-+ XL v5 Kit (consolidated)
+```bash
+sudo ln -s /etc/nginx/sites-available/chatbot /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-### 🔄 RLHF Training Pipeline
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant C as Chatbot
-    participant T as Telegram
-    participant H as Human
-    participant D as Database
-    
-    U->>C: Query
-    C->>U: Response
-    C->>T: Log interaction
-    H->>T: 👍 or 👎
-    T->>D: Store feedback
-    D->>C: Fine-tune model
+**3. Get SSL Certificate**
+```bash
+sudo certbot --nginx -d your-subdomain.com
 ```
 
-**Telegram Integration:**
-- All conversations logged automatically
-- Human reviewers provide feedback
-- Training data formatted for MLX fine-tuning
-- Continuous improvement loop
+**4. SSH Tunnel from Mac to VPS**
+```bash
+# On your Mac (runs chatbot locally, tunnels to VPS)
+ssh -R 0.0.0.0:5001:localhost:5001 root@your-vps-ip -N
+```
 
-## 📁 Project Structure
+Your chatbot is now accessible at `https://your-subdomain.com`
+
+## Project Structure
 
 ```
 divine-tribe-chatbot/
 │
-├── chatbot_modular.py          # Flask API server
+├── chatbot_modular.py          # Main Flask server
+├── chatbot_with_human.py       # Human-in-loop mode
 │
 ├── modules/
-│   ├── agent_router.py         # Query routing
-│   ├── cag_cache.py           # Instant answers
-│   ├── context_manager.py     # Conversation tracking
-│   ├── conversation_logger.py  # RLHF data collection
+│   ├── agent_router.py         # Routes queries to appropriate handler
+│   ├── cag_cache.py           # Cached answers
+│   ├── context_manager.py     # Conversation context
+│   ├── conversation_logger.py  # Logs for training
 │   ├── conversation_memory.py  # Short-term memory
-│   ├── image_generator.py     # FLUX artwork
-│   ├── intent_classifier.py   # 5-signal classification
-│   ├── product_database.py    # Search orchestrator
+│   ├── image_generator.py     # ComfyUI integration
+│   ├── intent_classifier.py   # Query classification
+│   ├── product_database.py    # Product search
 │   ├── query_preprocessor.py  # Query normalization
-│   ├── rag_retriever.py       # Hybrid search
-│   └── vector_store.py        # Semantic embeddings
+│   ├── rag_retriever.py       # Semantic + keyword search
+│   └── vector_store.py        # Embeddings storage
 │
-├── products_organized.json     # Product catalog (146 items)
-├── .gitignore                  # Excludes private data
-└── README.md                   # This file
+└── products_clean.json         # Product catalog (143 items)
 ```
 
-## 🛠️ Configuration
+## Features
 
-### Product Priorities
+### Intelligent Search
+- Semantic understanding (not just keywords)
+- Context-aware follow-ups
+- Material detection (concentrate vs dry herb)
+- Deduplication (143 unique products, not 700+ variants)
 
-Edit `products_organized.json` to adjust product rankings:
-
-```json
-{
-  "categories": {
-    "main_products": {
-      "priority": 1,
-      "products": [...]
-    }
-  }
-}
+### Cached Answers
+```
+Query: "what is the v5"
+  ↓
+Cache: HIT ✓
+  ↓
+Response: <0.1s (no LLM call)
 ```
 
-### CAG Cache
+### AI Image Generation
+- Integrated ComfyUI + FLUX
+- 60-90 second generation time
+- Base64 encoded for web display
 
-Add new cached answers in `modules/cag_cache.py`:
+## API Endpoints
 
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/chat` | POST | Send message, get response |
+| `/generate_image` | POST | Create AI artwork |
+| `/health` | GET | Server status |
+
+**Example:**
+```bash
+curl -X POST https://chat.marijuanaunion.com/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "best for concentrates",
+    "session_id": "user_123"
+  }'
+```
+
+## Model Consolidation
+
+**Problem:** Multiple ComfyUI projects duplicated 10GB+ models across disk
+
+**Solution:** 
+- Created central `~/AI_Models/` directory
+- Symlinked all projects to shared models
+- **Result:** Saved 66GB disk space
+
+```bash
+~/AI_Models/
+├── ComfyUI/
+│   ├── checkpoints/flux1-schnell.safetensors (22GB)
+│   ├── clip/t5xxl_fp16.safetensors (9.1GB)
+│   └── clip/clip_l.safetensors (235MB)
+└── TTS/xtts_v2_model.pth (1.7GB)
+
+# All projects symlink to these shared files
+```
+
+## Configuration
+
+### Update Product Catalog
+Edit `products_clean.json` - embeddings rebuild automatically on next startup.
+
+### Add Cached Answers
+Edit `modules/cag_cache.py`:
 ```python
 self.product_cache = {
-    "v5": {
-        "keywords": ["v5", "divine crossing v5"],
-        "response": "Product description...",
+    "keyword": {
+        "keywords": ["trigger", "words"],
+        "response": "Your cached answer...",
         "intent": "product_info"
     }
 }
 ```
 
-### Embeddings Rebuild
+## Security Notes
 
-When catalog changes:
+**Not included in repo:**
+- `telegram_handler.py` (contains bot tokens)
+- `conversation_logs/` (user conversations)
+- `*.pkl` (embeddings cache)
+- `venv/` (virtual environment)
 
-```bash
-rm product_embeddings.pkl
-python chatbot_modular.py  # Auto-rebuilds on startup
-```
+See `.gitignore` for full list.
 
-## 📊 Training Data Format
-
-Conversations logged in `conversation_logs/YYYY-MM-DD.json`:
-
-```json
-{
-  "chat_id": "session_123_20251108",
-  "timestamp": "2025-11-08T10:30:00",
-  "user_query": "best for wax",
-  "bot_response": "...",
-  "products_shown": ["V5 XL Kit", "Core Deluxe"],
-  "intent": "material_shopping",
-  "confidence": 0.85,
-  "feedback": "👍"
-}
-```
-
-Used for:
-- Model fine-tuning (MLX)
-- Cache optimization
-- Intent classifier training
-- A/B testing
-
-## 🔧 API Endpoints
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/chat` | POST | Main chat interface |
-| `/feedback` | POST | Submit user feedback |
-| `/health` | GET | Server status check |
-
-**Example Request:**
-
-```bash
-curl -X POST http://localhost:5001/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "best for wax",
-    "session_id": "user_123"
-  }'
-```
-
-## 🎯 Roadmap
-
-- [ ] Multi-language support (ES, FR)
-- [ ] Voice input/output
-- [ ] Image-based troubleshooting
-- [ ] Inventory integration
-- [ ] Order tracking
-- [ ] Product recommendations based on purchase history
-
-## 📞 Contact
+## Contact
 
 - **Website:** [ineedhemp.com](https://ineedhemp.com)
 - **Email:** matt@ineedhemp.com
-- **Reddit:** [r/DivineTribeVaporizers](https://reddit.com/r/DivineTribeVaporizers)
 
-## 📄 License
+## License
 
-Proprietary - Divine Tribe Vaporizers / Nice Dreamz LLC
+Proprietary - Divine Tribe / Nice Dreamz LLC
 
 ---
 
-<div align="center">
-
-**Built with ❤️ by Matt @ Divine Tribe**
-
-*Powered by Mistral AI • sentence-transformers • Flask*
-
-[![Star this repo](https://img.shields.io/github/stars/nicedreamzapp/divine-tribe-chatbot?style=social)](https://github.com/nicedreamzapp/divine-tribe-chatbot)
-
-</div>
+Built by Matt @ Divine Tribe • Powered by Mistral AI & ComfyUI
