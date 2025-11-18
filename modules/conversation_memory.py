@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 """
-Conversation Memory - Tracks conversation history per session
-Maintains context for follow-up questions and multi-turn conversations
+conversation_memory.py - Tracks conversation history per session
+CLEANED: Better memory management, cleaner API
 """
 
 from typing import Dict, List, Optional
 from datetime import datetime
 from collections import deque
 
+
 class ConversationMemory:
+    """
+    Maintains conversation history for multi-turn conversations
+    Keeps track of recent exchanges per session
+    """
+    
     def __init__(self, max_history: int = 5):
         """
         Initialize conversation memory
@@ -20,18 +26,15 @@ class ConversationMemory:
         self.sessions = {}  # session_id -> deque of exchanges
         print(f"✓ Conversation Memory initialized (max {max_history} exchanges per session)")
     
-    def add_exchange(self, session_id: str, user_message: str, bot_response: str, 
-                     intent: str = None, products_shown: List[Dict] = None):
-        """
-        Add a conversation exchange to memory
-        
-        Args:
-            session_id: Unique session identifier
-            user_message: User's message
-            bot_response: Bot's response
-            intent: Classified intent (optional)
-            products_shown: List of products shown (optional)
-        """
+    def add_exchange(
+        self,
+        session_id: str,
+        user_message: str,
+        bot_response: str,
+        intent: str = None,
+        products_shown: List[Dict] = None
+    ):
+        """Add a conversation exchange to memory"""
         # Create session if doesn't exist
         if session_id not in self.sessions:
             self.sessions[session_id] = deque(maxlen=self.max_history)
@@ -85,17 +88,24 @@ class ConversationMemory:
         if not history:
             return ""
         
-        context = "=== RECENT CONVERSATION HISTORY ===\n\n"
+        context = "=== RECENT CONVERSATION ===\n\n"
         
         for i, exchange in enumerate(history, 1):
             context += f"Turn {i}:\n"
             context += f"User: {exchange['user']}\n"
-            context += f"Assistant: {exchange['bot'][:200]}...\n"  # Truncate long responses
+            
+            # Truncate long bot responses
+            bot_text = exchange['bot']
+            if len(bot_text) > 200:
+                bot_text = bot_text[:200] + "..."
+            context += f"Assistant: {bot_text}\n"
+            
             if exchange.get('intent'):
                 context += f"(Intent: {exchange['intent']})\n"
+            
             context += "\n"
         
-        context += "=== END CONVERSATION HISTORY ===\n\n"
+        context += "=== END CONVERSATION ===\n"
         return context
     
     def has_mentioned_product(self, session_id: str, product_name: str) -> bool:
@@ -128,15 +138,7 @@ class ConversationMemory:
         return False
     
     def get_last_intent(self, session_id: str) -> Optional[str]:
-        """
-        Get the intent from the last exchange
-        
-        Args:
-            session_id: Session to check
-        
-        Returns:
-            Intent string or None
-        """
+        """Get the intent from the last exchange"""
         history = self.get_history(session_id, max_turns=1)
         
         if history:
@@ -145,15 +147,7 @@ class ConversationMemory:
         return None
     
     def get_last_user_message(self, session_id: str) -> Optional[str]:
-        """
-        Get the last user message
-        
-        Args:
-            session_id: Session to check
-        
-        Returns:
-            User message string or None
-        """
+        """Get the last user message"""
         history = self.get_history(session_id, max_turns=1)
         
         if history:
@@ -161,31 +155,28 @@ class ConversationMemory:
         
         return None
     
-    def clear_session(self, session_id: str):
-        """
-        Clear conversation history for a session
+    def get_last_products(self, session_id: str) -> List[str]:
+        """Get products from last exchange"""
+        history = self.get_history(session_id, max_turns=1)
         
-        Args:
-            session_id: Session to clear
-        """
+        if history:
+            return history[0].get('products', [])
+        
+        return []
+    
+    def clear_session(self, session_id: str):
+        """Clear conversation history for a session"""
         if session_id in self.sessions:
             del self.sessions[session_id]
+            print(f"🗑️  Cleared session: {session_id}")
     
     def get_active_sessions(self) -> int:
-        """
-        Get number of active sessions
-        
-        Returns:
-            Number of sessions in memory
-        """
+        """Get number of active sessions"""
         return len(self.sessions)
     
     def get_session_summary(self, session_id: str) -> Dict:
         """
         Get summary statistics for a session
-        
-        Args:
-            session_id: Session to summarize
         
         Returns:
             Dictionary with session stats
@@ -247,15 +238,7 @@ class ConversationMemory:
         return has_history and (starts_with_followup or is_short)
     
     def get_context_products(self, session_id: str) -> List[str]:
-        """
-        Get list of all products mentioned in this session
-        
-        Args:
-            session_id: Session to check
-        
-        Returns:
-            List of unique product names
-        """
+        """Get list of all products mentioned in this session"""
         history = self.get_history(session_id)
         products = set()
         
@@ -263,3 +246,103 @@ class ConversationMemory:
             products.update(exchange.get('products', []))
         
         return list(products)
+    
+    def get_stats(self) -> Dict:
+        """Get memory statistics"""
+        total_exchanges = sum(len(self.sessions[sid]) for sid in self.sessions)
+        
+        return {
+            'active_sessions': len(self.sessions),
+            'total_exchanges': total_exchanges,
+            'max_history_per_session': self.max_history
+        }
+    
+    def cleanup_old_sessions(self, max_sessions: int = 100):
+        """
+        Keep only the most recent sessions
+        Useful for preventing memory bloat
+        """
+        if len(self.sessions) <= max_sessions:
+            return 0
+        
+        # Get sessions sorted by last update (newest first)
+        sessions_by_time = []
+        for sid, history in self.sessions.items():
+            if history:
+                last_time = history[-1]['timestamp']
+                sessions_by_time.append((sid, last_time))
+        
+        sessions_by_time.sort(key=lambda x: x[1], reverse=True)
+        
+        # Keep only the newest max_sessions
+        sessions_to_keep = set(sid for sid, _ in sessions_by_time[:max_sessions])
+        
+        # Delete old sessions
+        deleted = 0
+        for sid in list(self.sessions.keys()):
+            if sid not in sessions_to_keep:
+                del self.sessions[sid]
+                deleted += 1
+        
+        if deleted > 0:
+            print(f"🗑️  Cleaned up {deleted} old sessions")
+        
+        return deleted
+
+
+def test_conversation_memory():
+    """Test conversation memory"""
+    print("\n" + "="*70)
+    print("CONVERSATION MEMORY TEST")
+    print("="*70 + "\n")
+    
+    memory = ConversationMemory(max_history=3)
+    session_id = "test_session"
+    
+    # Add some exchanges
+    exchanges = [
+        ("what's the best vape for beginners", "I recommend the Core XL Deluxe", "recommendation"),
+        ("tell me more about it", "The Core XL Deluxe is an all-in-one eRig", "product_info"),
+        ("what about the v5", "The V5 is a rebuildable atomizer", "product_info"),
+        ("how much is it", "The V5 is $XX", "pricing")
+    ]
+    
+    for user, bot, intent in exchanges:
+        memory.add_exchange(session_id, user, bot, intent)
+    
+    # Test history
+    print("Full History:")
+    history = memory.get_history(session_id)
+    for i, ex in enumerate(history, 1):
+        print(f"  {i}. User: {ex['user'][:40]}...")
+        print(f"     Bot: {ex['bot'][:40]}...")
+    
+    # Test context string
+    print("\nContext String:")
+    context = memory.get_context_string(session_id, max_turns=2)
+    print(context[:200] + "...")
+    
+    # Test summary
+    print("\nSession Summary:")
+    summary = memory.get_session_summary(session_id)
+    for key, value in summary.items():
+        print(f"  {key}: {value}")
+    
+    # Test follow-up detection
+    print("\nFollow-up Detection:")
+    test_queries = ["tell me more", "what about the price", "a new vaporizer for flower"]
+    for query in test_queries:
+        is_followup = memory.detect_follow_up(session_id, query)
+        print(f"  '{query}': {'YES' if is_followup else 'NO'}")
+    
+    # Test stats
+    print("\nMemory Stats:")
+    stats = memory.get_stats()
+    for key, value in stats.items():
+        print(f"  {key}: {value}")
+    
+    print("\n" + "="*70)
+
+
+if __name__ == "__main__":
+    test_conversation_memory()

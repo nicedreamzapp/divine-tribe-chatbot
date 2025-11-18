@@ -1,170 +1,187 @@
 #!/usr/bin/env python3
 """
-vector_store.py - Semantic search using sentence embeddings
-This enables understanding "v5" means "V5 XL" even without exact keyword match
+vector_store.py - Vector embedding store for semantic search
+CLEANED: Better caching, error handling, optimized search
 """
 
-import json
 import pickle
 import os
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
+from sentence_transformers import SentenceTransformer
 import numpy as np
-
-# Try to import sentence-transformers, fall back to simple mode if not available
-try:
-    from sentence_transformers import SentenceTransformer
-    EMBEDDINGS_AVAILABLE = True
-except ImportError:
-    print("⚠️  sentence-transformers not installed. Running in keyword-only mode.")
-    print("   Install with: pip install sentence-transformers")
-    EMBEDDINGS_AVAILABLE = False
 
 
 class VectorStore:
     """
-    Semantic vector store for products using sentence embeddings.
-    
-    This allows fuzzy matching like:
-    - "v5" → finds "V5 XL Rebuildable Heater"
-    - "jar" → finds all jar products
-    - "best for flavor" → finds V5 XL
+    Vector store for semantic product search
+    Uses sentence transformers for embeddings
     """
     
-    def __init__(self, cache_file: str = "product_embeddings.pkl"):
+    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', cache_file: str = 'product_embeddings.pkl'):
+        self.model_name = model_name
         self.cache_file = cache_file
         self.model = None
         self.embeddings = {}  # product_id -> embedding vector
         self.products = {}    # product_id -> product dict
         
-        if EMBEDDINGS_AVAILABLE:
-            # Load a lightweight, fast model (all-MiniLM-L6-v2 is only 80MB)
-            print("🔄 Loading sentence embedding model...")
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
+    def build_index(self, products: List[Dict]):
+        """Build vector index from products"""
+        print("🔄 Loading sentence embedding model...")
+        
+        try:
+            self.model = SentenceTransformer(self.model_name)
             print("✅ Embedding model ready")
-        else:
-            print("⚠️  Running without embeddings (keyword search only)")
-    
-    def build_embeddings(self, products: List[Dict], force_rebuild: bool = False):
-        """
-        Build or load embeddings for all products.
-        
-        Args:
-            products: List of product dictionaries
-            force_rebuild: If True, rebuild even if cache exists
-        """
-        # Try to load from cache first
-        if not force_rebuild and os.path.exists(self.cache_file):
-            print(f"📂 Loading embeddings from cache: {self.cache_file}")
-            try:
-                with open(self.cache_file, 'rb') as f:
-                    cached_data = pickle.load(f)
-                    self.embeddings = cached_data['embeddings']
-                    self.products = cached_data['products']
-                print(f"✅ Loaded {len(self.embeddings)} cached embeddings")
-                return
-            except Exception as e:
-                print(f"⚠️  Cache load failed: {e}. Rebuilding...")
-        
-        if not EMBEDDINGS_AVAILABLE:
-            print("⚠️  Cannot build embeddings without sentence-transformers")
+        except Exception as e:
+            print(f"❌ Failed to load embedding model: {e}")
             return
         
-        # Build embeddings from scratch
+        # Try to load cached embeddings
+        if self._load_cache(products):
+            print(f"✅ Loaded {len(self.embeddings)} cached embeddings")
+            return
+        
+        # Build new embeddings
         print(f"🔨 Building embeddings for {len(products)} products...")
+        self._build_embeddings(products)
         
-        product_texts = []
-        product_ids = []
-        
-        for i, product in enumerate(products):
-            product_id = product.get('id', product.get('name', f'product_{i}'))
-            
-            # Create rich text representation for embedding
-            text = self._create_embedding_text(product)
-            
-            product_texts.append(text)
-            product_ids.append(product_id)
-            self.products[product_id] = product
-        
-        # Generate embeddings in batch (faster)
-        print("🧠 Generating embeddings...")
-        embeddings_array = self.model.encode(
-            product_texts,
-            show_progress_bar=True,
-            batch_size=32
-        )
-        
-        # Store embeddings
-        for product_id, embedding in zip(product_ids, embeddings_array):
-            self.embeddings[product_id] = embedding
-        
-        # Cache for future use
+        # Save cache
         self._save_cache()
         
-        print(f"✅ Built and cached {len(self.embeddings)} embeddings")
+        print(f"✅ Built {len(self.embeddings)} embeddings")
     
-    def _create_embedding_text(self, product: Dict) -> str:
-        """
-        Create rich text representation of product for embedding.
-        
-        This combines multiple fields to create semantic meaning:
-        - Product name (most important)
-        - Category
-        - Description
-        - Key features
-        """
+    def _build_embeddings(self, products: List[Dict]):
+        """Build embeddings for all products"""
+        for i, product in enumerate(products):
+            # Generate product ID
+            product_id = product.get('id', product.get('name', f'product_{i}'))
+            
+            # Build searchable text
+            search_text = self._build_search_text(product)
+            
+            # Generate embedding
+            try:
+                embedding = self.model.encode(search_text, convert_to_numpy=True)
+                self.embeddings[product_id] = embedding
+                self.products[product_id] = product
+            except Exception as e:
+                print(f"⚠️  Failed to embed product {product_id}: {e}")
+    
+    def _build_search_text(self, product: Dict) -> str:
+        """Build searchable text from product data"""
         parts = []
         
-        # Product name (repeat 3x for emphasis)
+        # Name (most important)
         name = product.get('name', '')
-        parts.append(name)
-        parts.append(name)
-        parts.append(name)
+        if name:
+            parts.append(name)
+            parts.append(name)  # Add twice for extra weight
         
-        # Category
-        category = product.get('category_display', product.get('category', ''))
-        parts.append(category)
-        
-        # Description (truncated to avoid overwhelming)
+        # Description
         desc = product.get('description', '')
         if desc:
-            # Take first 500 chars for embedding
-            parts.append(desc[:500])
+            # Clean description
+            import re
+            desc = re.sub(r'<[^>]+>', '', desc)  # Remove HTML
+            desc = re.sub(r'\\n', ' ', desc)     # Remove newlines
+            desc = re.sub(r'\s+', ' ', desc)     # Normalize spaces
+            desc = desc.strip()[:500]            # Limit length
+            parts.append(desc)
         
-        # Short description
-        short_desc = product.get('short_description', '')
-        if short_desc:
-            parts.append(short_desc[:200])
+        # Category
+        category = product.get('category', '')
+        if category:
+            parts.append(category)
         
         return ' '.join(parts)
     
-    def semantic_search(self, query: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def _load_cache(self, products: List[Dict]) -> bool:
+        """Load cached embeddings if available and valid"""
+        if not os.path.exists(self.cache_file):
+            return False
+        
+        try:
+            print(f"📂 Loading embeddings from cache: {self.cache_file}")
+            with open(self.cache_file, 'rb') as f:
+                cache = pickle.load(f)
+            
+            # Validate cache
+            if 'model_name' not in cache or cache['model_name'] != self.model_name:
+                print("⚠️  Cache model mismatch, rebuilding...")
+                return False
+            
+            if 'embeddings' not in cache or 'products' not in cache:
+                print("⚠️  Invalid cache format, rebuilding...")
+                return False
+            
+            # Check if product list changed
+            cached_product_count = len(cache['products'])
+            current_product_count = len(products)
+            
+            if cached_product_count != current_product_count:
+                print(f"⚠️  Product count changed ({cached_product_count} → {current_product_count}), rebuilding...")
+                return False
+            
+            # Load cached data
+            self.embeddings = cache['embeddings']
+            self.products = cache['products']
+            
+            return True
+            
+        except Exception as e:
+            print(f"⚠️  Failed to load cache: {e}")
+            return False
+    
+    def _save_cache(self):
+        """Save embeddings to cache file"""
+        try:
+            cache = {
+                'model_name': self.model_name,
+                'embeddings': self.embeddings,
+                'products': self.products
+            }
+            
+            with open(self.cache_file, 'wb') as f:
+                pickle.dump(cache, f)
+            
+            print(f"💾 Saved embeddings to cache: {self.cache_file}")
+            
+        except Exception as e:
+            print(f"⚠️  Failed to save cache: {e}")
+    
+    def semantic_search(self, query: str, top_k: int = 5) -> List[Tuple[str, float]]:
         """
-        Search products using semantic similarity.
+        Semantic search using vector similarity
         
         Args:
             query: Search query
             top_k: Number of results to return
-            
+        
         Returns:
-            List of (product_id, similarity_score) tuples, sorted by relevance
+            List of (product_id, similarity_score) tuples
         """
-        if not EMBEDDINGS_AVAILABLE or not self.embeddings:
+        if not self.model or not self.embeddings:
+            print("⚠️  Vector store not initialized")
             return []
         
-        # Encode query
-        query_embedding = self.model.encode([query])[0]
-        
-        # Calculate cosine similarity with all products
-        similarities = []
-        
-        for product_id, product_embedding in self.embeddings.items():
-            similarity = self._cosine_similarity(query_embedding, product_embedding)
-            similarities.append((product_id, float(similarity)))
-        
-        # Sort by similarity (highest first)
-        similarities.sort(key=lambda x: x[1], reverse=True)
-        
-        return similarities[:top_k]
+        try:
+            # Encode query
+            query_embedding = self.model.encode(query, convert_to_numpy=True)
+            
+            # Calculate similarities
+            similarities = []
+            for product_id, product_embedding in self.embeddings.items():
+                # Cosine similarity
+                similarity = self._cosine_similarity(query_embedding, product_embedding)
+                similarities.append((product_id, similarity))
+            
+            # Sort by similarity
+            similarities.sort(key=lambda x: x[1], reverse=True)
+            
+            return similarities[:top_k]
+            
+        except Exception as e:
+            print(f"❌ Semantic search error: {e}")
+            return []
     
     def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
         """Calculate cosine similarity between two vectors"""
@@ -177,73 +194,109 @@ class VectorStore:
         
         return dot_product / (norm1 * norm2)
     
-    def get_product(self, product_id: str) -> Dict:
+    def get_product(self, product_id: str) -> Optional[Dict]:
         """Get product by ID"""
-        return self.products.get(product_id, {})
+        return self.products.get(product_id)
     
-    def _save_cache(self):
-        """Save embeddings to cache file"""
-        try:
-            cache_data = {
-                'embeddings': self.embeddings,
-                'products': self.products
-            }
-            with open(self.cache_file, 'wb') as f:
-                pickle.dump(cache_data, f)
-            print(f"💾 Saved embeddings cache to {self.cache_file}")
-        except Exception as e:
-            print(f"⚠️  Failed to save cache: {e}")
+    def get_similar_products(self, product_id: str, top_k: int = 5) -> List[Tuple[str, float]]:
+        """
+        Find similar products to a given product
+        
+        Args:
+            product_id: Product ID to find similar products for
+            top_k: Number of results
+        
+        Returns:
+            List of (product_id, similarity_score) tuples
+        """
+        if product_id not in self.embeddings:
+            print(f"⚠️  Product {product_id} not found in embeddings")
+            return []
+        
+        product_embedding = self.embeddings[product_id]
+        
+        similarities = []
+        for pid, emb in self.embeddings.items():
+            if pid == product_id:
+                continue  # Skip self
+            
+            similarity = self._cosine_similarity(product_embedding, emb)
+            similarities.append((pid, similarity))
+        
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return similarities[:top_k]
     
     def clear_cache(self):
-        """Clear embeddings cache"""
+        """Delete cache file"""
         if os.path.exists(self.cache_file):
             os.remove(self.cache_file)
-            print(f"🗑️  Cleared cache: {self.cache_file}")
+            print(f"🗑️  Deleted cache: {self.cache_file}")
+    
+    def get_stats(self) -> Dict:
+        """Get vector store statistics"""
+        return {
+            'model': self.model_name,
+            'embeddings_count': len(self.embeddings),
+            'products_count': len(self.products),
+            'cache_file': self.cache_file,
+            'cache_exists': os.path.exists(self.cache_file)
+        }
 
 
-# Convenience function for testing
 def test_vector_store():
-    """Test the vector store with sample data"""
+    """Test the vector store"""
     print("\n" + "="*70)
     print("VECTOR STORE TEST")
     print("="*70 + "\n")
     
-    # Load products
-    with open('products_organized.json', 'r') as f:
-        data = json.load(f)
+    # Sample products
+    products = [
+        {
+            'id': 'v5',
+            'name': 'Divine Crossing V5',
+            'description': 'Rebuildable concentrate atomizer with ceramic cup',
+            'category': 'concentrates'
+        },
+        {
+            'id': 'core',
+            'name': 'Core XL Deluxe',
+            'description': 'All-in-one eRig for concentrates',
+            'category': 'concentrates'
+        },
+        {
+            'id': 'ruby',
+            'name': 'Ruby Twist',
+            'description': 'Desktop ball vape for dry herb',
+            'category': 'dry_herb'
+        }
+    ]
     
-    categories = data.get('categories', {})
-    products = []
-    
-    for cat_name, cat_data in categories.items():
-        for product in cat_data.get('products', []):
-            product['category'] = cat_name
-            products.append(product)
-    
-    print(f"Loaded {len(products)} products")
-    
-    # Build vector store
+    # Build index
     vs = VectorStore()
-    vs.build_embeddings(products)
+    vs.build_index(products)
     
-    # Test queries
+    # Stats
+    print("\nVector Store Stats:")
+    stats = vs.get_stats()
+    for key, value in stats.items():
+        print(f"  {key}: {value}")
+    
+    # Test search
+    print("\nTest Searches:")
     test_queries = [
-        "v5",
-        "v5 xl",
-        "best flavor",
-        "beginner",
-        "jar",
-        "glass",
-        "ruby twist"
+        "concentrate vaporizer",
+        "dry herb device",
+        "all in one erig"
     ]
     
     for query in test_queries:
-        print(f"\nQuery: '{query}'")
-        results = vs.semantic_search(query, top_k=3)
-        
-        for i, (product_id, score) in enumerate(results, 1):
+        print(f"\n  Query: '{query}'")
+        results = vs.semantic_search(query, top_k=2)
+        for product_id, score in results:
             product = vs.get_product(product_id)
-            print(f"  {i}. {product['name'][:60]}... (score: {score:.3f})")
+            print(f"    {product['name']}: {score:.3f}")
+    
+    print("\n" + "="*70)
 
 
 if __name__ == "__main__":

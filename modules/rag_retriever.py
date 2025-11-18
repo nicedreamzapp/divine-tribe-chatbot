@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 rag_retriever.py - Modern RAG retrieval system
-Prioritizes main kits: XL V5 > V5, Core XL first
+OPTIMIZED: Cleaner code, better prioritization
 """
 
 import json
@@ -12,7 +12,7 @@ from collections import defaultdict
 
 class RAGRetriever:
     """
-    Hybrid RAG retrieval system that combines:
+    Hybrid RAG retrieval system:
     1. Vector semantic search (meaning-based)
     2. Keyword/lexical search (exact matching)
     3. Priority-based ranking (main kits first)
@@ -24,24 +24,23 @@ class RAGRetriever:
         self.products = []
         self.product_index = {}
         self.canonical_map = {}
-        self.business_rules = {}
         
-        # MAIN KITS - HIGHEST PRIORITY (in order of recommendation)
+        # MAIN KITS - PRIORITY ORDER
         self.main_kits_priority = [
-            # Concentrates (in priority order)
+            # Concentrates (in recommendation order)
             ('xl_core_deluxe', 'XL Deluxe Core eRig Kit- Now with 6 Heat Settings', 1),
             ('xl_core_recycler', 'XL Recycler Top Core Deluxe eRig', 2),
-            ('v5_xl', 'Divine Crossing XL v5 Rebuildable Concentrate Heater', 3),  # XL before regular
+            ('v5_xl', 'Divine Crossing XL v5 Rebuildable Concentrate Heater', 3),
             ('v5', 'Divine Crossing v5 Rebuildable Concentrate Heater', 4),
             ('v5_xl_bundle', 'XL v5 Rebuildable Heater, Pico Plus & Hubble Bubble', 5),
             ('v5_pico', 'Divine Crossing v5 Rebuildable Heater & Pico Plus', 6),
             
-            # Dry Herb (in priority order)
+            # Dry Herb (in recommendation order)
             ('ruby_twist', 'Ruby Twist Injector - Dry Herb Desktop Kit', 1),
             ('gen2_dc', 'Gen 2 DC Ceramic Rebuildable Dry Herb Heater', 2),
         ]
         
-        # Retrieval weights (tunable)
+        # Retrieval weights
         self.weights = {
             'semantic': 0.4,
             'lexical': 0.3,
@@ -52,13 +51,11 @@ class RAGRetriever:
     def load_products(self, products: List[Dict], business_rules: Dict = None):
         """Load products and build indices"""
         self.products = products
-        self.business_rules = business_rules or {}
         
         # Build product index (handle missing 'id' field)
         for i, product in enumerate(products):
             product_id = product.get('id', product.get('name', f'product_{i}'))
             self.product_index[product_id] = product
-            # Store the ID back in the product for later use
             if 'id' not in product:
                 product['id'] = product_id
         
@@ -70,7 +67,6 @@ class RAGRetriever:
     def _build_canonical_map(self):
         """Build canonical product name mappings for main kits"""
         
-        # Map common searches to main kit products
         self.canonical_map = {
             # V5 XL mappings (prioritize XL over regular)
             'v5 xl': 'v5_xl',
@@ -79,8 +75,8 @@ class RAGRetriever:
             'v 5 xl': 'v5_xl',
             'v5 extra large': 'v5_xl',
             
-            # V5 mappings (only match when NOT asking for XL)
-            'v5': 'v5_xl',  # Default to XL when just saying "v5"
+            # V5 mappings (default to XL when just saying "v5")
+            'v5': 'v5_xl',
             'v 5': 'v5_xl',
             'version 5': 'v5_xl',
             'divine crossing v5': 'v5_xl',
@@ -166,7 +162,7 @@ class RAGRetriever:
         """Check if query is asking about main kits - XL V5 always first"""
         results = []
         
-        # Check for material type first
+        # Check for material type
         is_flower = any(w in query for w in ['flower', 'dry herb', 'herb', 'bud'])
         is_concentrate = any(w in query for w in ['concentrate', 'wax', 'dab', 'rosin', 'shatter', 'oil', 'hash', 'resin'])
         
@@ -175,7 +171,6 @@ class RAGRetriever:
         
         # If asking about flower
         if is_flower and not is_concentrate:
-            # Show Ruby Twist and Gen 2 DC
             for product in self.products:
                 name = product.get('name', '')
                 if 'Ruby Twist Injector - Dry Herb Desktop Kit' in name:
@@ -187,18 +182,16 @@ class RAGRetriever:
         
         # If asking specifically about v5 (prioritize XL)
         if 'v5' in query or 'v 5' in query:
-            # XL V5 FIRST
             priority_names = [
-                'Divine Crossing XL v5 Rebuildable Concentrate Heater',
+                'Divine Crossing XL v5 Rebuildable Concentrate Heater',  # XL FIRST
                 'XL v5 Rebuildable Heater, Pico Plus & Hubble Bubble',
                 'Divine Crossing v5 Rebuildable Heater & Pico Plus',
-                'Divine Crossing v5 Rebuildable Concentrate Heater',
+                'Divine Crossing v5 Rebuildable Concentrate Heater',  # Regular V5 last
             ]
             
             for priority_name in priority_names:
                 for product in self.products:
-                    name = product.get('name', '')
-                    if priority_name in name:
+                    if priority_name in product.get('name', ''):
                         results.append(product)
                         if len(results) >= 4:
                             return results
@@ -208,9 +201,8 @@ class RAGRetriever:
         
         # If asking about concentrates or general beginner
         if is_concentrate or 'vaporizer' in query or 'vape' in query or is_beginner:
-            # Core first for beginners, then V5 XL
             priority_names = [
-                'XL Deluxe Core eRig Kit- Now with 6 Heat Settings',
+                'XL Deluxe Core eRig Kit- Now with 6 Heat Settings',  # Core first for beginners
                 'XL Recycler Top Core Deluxe eRig',
                 'Divine Crossing XL v5 Rebuildable Concentrate Heater',  # XL before regular
                 'Divine Crossing v5 Rebuildable Heater & Pico Plus',
@@ -218,8 +210,7 @@ class RAGRetriever:
             
             for priority_name in priority_names:
                 for product in self.products:
-                    name = product.get('name', '')
-                    if priority_name in name:
+                    if priority_name in product.get('name', ''):
                         results.append(product)
                         if len(results) >= 4:
                             return results

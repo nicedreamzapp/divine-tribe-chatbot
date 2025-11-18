@@ -1,13 +1,14 @@
 """
 CAG Cache - Troubleshooting, How-To, and Company Info Only
 NO product cache - all products go through RAG search
+FIXED: Added Core vs V5 comparison, mod compatibility info
 """
 
 class CAGCache:
     
     def __init__(self):
         
-        # Product comparisons (keep these)
+        # Product comparisons (EXPANDED)
         self.comparisons = {
             'v5_vs_v5xl': {
                 'question': 'What is the difference between V5 and V5 XL?',
@@ -23,6 +24,30 @@ That's it! Same technology, same quality. XL just holds more concentrate per loa
 - V5 XL: Bigger dabs, longer sessions
 
 Both use same ceramic cups, same heating tech."""
+            },
+            'core_vs_v5': {
+                'question': 'Core vs V5 - which is better?',
+                'answer': """**Core XL Deluxe vs V5:**
+
+**Core XL Deluxe** ✅
+- All-in-one (no separate mod needed)
+- Just charge and go
+- Easiest for beginners
+- 6 heat settings
+- Perfect for someone new to vapes
+
+**V5 / V5 XL** ⚡
+- Needs separate mod (Pico, Aegis, etc.)
+- More control over temperature
+- Best flavor possible
+- Rebuildable (save money long-term)
+- Better for advanced users
+
+**Bottom line:**
+- Want easy? → Core XL Deluxe
+- Want control? → V5 XL
+
+Both are excellent for concentrates!"""
             },
             'core_vs_fogger': {
                 'question': 'Core vs Nice Dreamz Fogger?',
@@ -140,7 +165,7 @@ Both use same ceramic cups, same heating tech."""
 
 **Product Lines:**
 - 🔥 Concentrate Vaporizers: V5, V5 XL atomizers, Core eRig
-- 🌿 Dry Herb: Ruby Twist ball vape
+- 🌿 Dry Herb: Ruby Twist ball vape, Gen 2 DC
 - 👕 Hemp Clothing: T-shirts, hoodies, boxers
 - 🏺 Accessories: Storage jars, glass bubblers, carb caps
 
@@ -224,7 +249,7 @@ For tech support, Reddit and Discord often have instant answers from the communi
             '''
         }
         
-        # HOW-TO GUIDES (updated cleaning, removed preheat)
+        # HOW-TO GUIDES (ADDED MOD COMPATIBILITY)
         self.how_to = {
             'v5_first_time': '''
 **First Time Using Your V5:**
@@ -284,28 +309,31 @@ For tech support, Reddit and Discord often have instant answers from the communi
             'mod_recommendations': '''
 **Best Mods for V5:**
 
-**Budget** 💰 $30-50:
-- Pico 75W
-- iStick Pico
-- Rim C
+**YES - These Work Great** ✅
+- **Pico 75W** - Most popular, cheap, reliable
+- **iStick Pico** - Same as above
+- **Rim C** - Budget option
+- **Aegis Solo** - Durable, waterproof
+- **Aegis Mini** - Compact version
+- **Wismec Reuleaux RX Gen3** - Dual/triple battery
+- **Voopoo Drag** - Popular choice
+- **Geekvape Aegis X** - Premium option
 
-**Mid-Range** 💰 $50-80:
-- Wismec Reuleaux RX Gen3
-- Aegis Solo/Mini
-- Pico 25
-
-**Premium** 💰 $80-150:
-- Aegis Legend
-- Voopoo Drag 3
-- Geekvape Aegis X
-
-**Required features**:
+**Required Features**:
 - Temperature control (TC) mode
-- At least 75W
+- At least 75W power
 - 510 threading
-- Supports Ni/TCR modes
+- Supports Ni or TCR modes
 
-**Matt's pick**: Pico 75W - cheap, reliable, perfect for V5!
+**Settings**:
+- Mode: Ni or TCR 245-250
+- Temp: 380-420°F
+- Wattage: 30-35W (XL: 35-40W)
+
+**Can I use my own mod?**
+Yes! As long as it has temp control and 510 threading, it'll work with V5.
+
+📧 Questions? Email matt@ineedhemp.com
             '''
         }
     
@@ -342,7 +370,8 @@ For tech support, Reddit and Discord often have instant answers from the communi
         if 'clean' in query_lower or 'maintenance' in query_lower:
             return self.how_to.get('cleaning')
         
-        if 'mod' in query_lower and any(w in query_lower for w in ['recommend', 'which', 'what', 'best']):
+        # FIXED: Mod questions now have answers
+        if 'mod' in query_lower and any(w in query_lower for w in ['recommend', 'which', 'what', 'best', 'use', 'own', 'my', 'compatible']):
             return self.how_to.get('mod_recommendations')
         
         return None
@@ -360,7 +389,7 @@ For tech support, Reddit and Discord often have instant answers from the communi
             'returns': ['return', 'refund', 'send back'],
             'shipping': ['shipping', 'delivery', 'tracking', 'when will'],
             'order_status': ['order status', 'where is my', 'order', 'shipped'],
-            'contact': ['contact', 'email', 'support', 'help', 'customer service']
+            'contact': ['contact', 'email', 'support', 'customer service']
         }
         
         for info_type, keywords in support_keywords.items():
@@ -370,17 +399,26 @@ For tech support, Reddit and Discord often have instant answers from the communi
         return None
     
     def get_comparison(self, query: str) -> str:
-        """Check if query is asking for a product comparison"""
+        """Check if query is asking for a product comparison - EXPANDED"""
         query_lower = query.lower()
         
+        # V5 vs V5 XL
         if ('v5' in query_lower or 'v 5' in query_lower) and ('xl' in query_lower or 'xlarge' in query_lower or 'extra large' in query_lower):
             comp = self.comparisons.get('v5_vs_v5xl')
             return comp['answer'] if isinstance(comp, dict) else comp
         
+        # Core vs V5 - ADDED!
+        if ('core' in query_lower and 'v5' in query_lower) or ('core' in query_lower and 'v 5' in query_lower):
+            if any(word in query_lower for word in ['vs', 'versus', 'compared', 'difference', 'better', 'which']):
+                comp = self.comparisons.get('core_vs_v5')
+                return comp['answer'] if isinstance(comp, dict) else comp
+        
+        # Core vs Fogger
         if ('core' in query_lower and 'fogger' in query_lower) or ('core' in query_lower and 'nice dreamz' in query_lower):
             comp = self.comparisons.get('core_vs_fogger')
             return comp['answer'] if isinstance(comp, dict) else comp
         
+        # Generic comparison request
         if 'vs' in query_lower or 'versus' in query_lower or 'compared' in query_lower or 'difference between' in query_lower:
             return "I can compare products for you! Which ones are you looking at?"
         
@@ -433,7 +471,11 @@ For tech support, Reddit and Discord often have instant answers from the communi
     def get_how_to_response(self, query: str) -> str:
         """Agent router compatibility"""
         try:
-            return self.get_how_to(query) or "I'm not sure about that. Email matt@ineedhemp.com for help!"
+            response = self.get_how_to(query)
+            if response:
+                return response
+            # FIXED: Don't just say "not sure" for mod questions
+            return "I'm not sure about that. Email matt@ineedhemp.com for help!"
         except Exception as e:
             print(f"Error in get_how_to_response: {e}")
             return "I'm having trouble with that. Email matt@ineedhemp.com for help!"

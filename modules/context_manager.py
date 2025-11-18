@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 context_manager.py - Intelligent conversation context tracking
-Remembers what products were discussed, user preferences, and conversation flow
+CLEANED: Better memory management, cleaner code
 """
 
 from typing import List, Dict, Optional, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import deque
 
 
@@ -17,7 +17,7 @@ class ContextManager:
     - Products mentioned in conversation
     - User's stated preferences (flavor, portability, etc.)
     - Last query intent
-    - Conversation flow (are they comparing? troubleshooting?)
+    - Conversation flow (comparing? troubleshooting?)
     - Follow-up context (when user says "it" or "that one")
     """
     
@@ -31,9 +31,9 @@ class ContextManager:
             self.sessions[session_id] = {
                 'history': deque(maxlen=self.max_history),
                 'mentioned_products': set(),
-                'last_products': [],  # Last products shown/discussed
+                'last_products': [],
                 'user_preferences': {},
-                'conversation_state': 'initial',  # initial, browsing, comparing, troubleshooting
+                'conversation_state': 'initial',
                 'last_category': None,
                 'last_intent': None,
                 'follow_up_context': None,
@@ -52,17 +52,7 @@ class ContextManager:
         intent: str = None,
         extracted_info: Dict = None
     ):
-        """
-        Add a conversation exchange and update context.
-        
-        Args:
-            session_id: Unique session identifier
-            user_query: User's query
-            bot_response: Bot's response
-            products_shown: List of products shown to user
-            intent: Classified intent of the query
-            extracted_info: Any additional extracted information
-        """
+        """Add a conversation exchange and update context"""
         session = self.get_or_create_session(session_id)
         
         # Add to history
@@ -80,9 +70,8 @@ class ContextManager:
         if products_shown:
             session['last_products'] = products_shown
             
-            # Track mentioned products (FIXED: handle missing IDs)
+            # Track mentioned products
             for product in products_shown:
-                # Use ID if available, otherwise use name as fallback
                 product_id = product.get('id', product.get('name', 'unknown'))
                 session['mentioned_products'].add(product_id)
             
@@ -94,7 +83,7 @@ class ContextManager:
         if intent:
             session['last_intent'] = intent
             
-            # Update conversation state based on intent
+            # Update conversation state
             if intent == 'comparison':
                 session['conversation_state'] = 'comparing'
             elif intent == 'support':
@@ -102,7 +91,7 @@ class ContextManager:
             elif intent in ['product_info', 'shopping']:
                 session['conversation_state'] = 'browsing'
         
-        # Extract user preferences from query
+        # Extract user preferences
         preferences = self._extract_preferences(user_query)
         if preferences:
             session['user_preferences'].update(preferences)
@@ -114,14 +103,7 @@ class ContextManager:
         session['last_updated'] = datetime.now()
     
     def _extract_preferences(self, query: str) -> Dict[str, Any]:
-        """
-        Extract user preferences from query.
-        
-        Examples:
-        - "best for flavor" → {'priority': 'flavor'}
-        - "beginner friendly" → {'experience_level': 'beginner'}
-        - "portable" → {'form_factor': 'portable'}
-        """
+        """Extract user preferences from query"""
         query_lower = query.lower()
         preferences = {}
         
@@ -150,34 +132,26 @@ class ContextManager:
         # Material preference
         if any(w in query_lower for w in ['dry herb', 'flower', 'bud']):
             preferences['material'] = 'dry_herb'
-        elif any(w in query_lower for w in ['concentrate', 'wax', 'dab', 'oil']):
+        elif any(w in query_lower for w in ['concentrate', 'wax', 'dab', 'oil', 'rosin', 'shatter', 'hash', 'resin']):
             preferences['material'] = 'concentrate'
         
         return preferences
     
     def _build_follow_up_context(self, session: Dict) -> Optional[Dict]:
-        """
-        Build context for follow-up questions.
-        
-        When user says "tell me more about it" or "what about that one",
-        we need to know what "it" refers to.
-        """
+        """Build context for follow-up questions"""
         if not session['last_products']:
             return None
         
         return {
             'referent_products': session['last_products'],
             'referent_category': session['last_category'],
-            'can_use_pronouns': True  # User can say "it", "that", "this"
+            'can_use_pronouns': True
         }
     
     def resolve_follow_up(self, session_id: str, query: str) -> Optional[Dict]:
         """
-        Resolve follow-up references like "it", "that one", "what about this".
-        Also detects when user is ANSWERING a question.
-        
-        Returns:
-            Context dict with resolved references, or None if not a follow-up
+        Resolve follow-up references like "it", "that one", "what about this"
+        Also detects when user is ANSWERING a question
         """
         session = self.get_or_create_session(session_id)
         query_lower = query.lower().strip()
@@ -208,14 +182,7 @@ class ContextManager:
         return context
     
     def _is_answering_question(self, session: Dict, query: str) -> bool:
-        """
-        Detect if user is answering a question from the bot.
-        
-        Examples:
-        Bot: "Do you use dry herb or concentrates?"
-        User: "concentrates" ← This is an answer!
-        """
-        # Check last exchange
+        """Detect if user is answering a question from the bot"""
         if not session['history']:
             return False
         
@@ -236,12 +203,8 @@ class ContextManager:
         # Single word/phrase answers are often responses
         return len(query.split()) <= 2 and any(pattern in query for pattern in answer_patterns)
     
-    
     def get_conversation_summary(self, session_id: str) -> Dict:
-        """
-        Get a summary of the conversation so far.
-        Useful for providing to LLM as context.
-        """
+        """Get a summary of the conversation so far"""
         session = self.get_or_create_session(session_id)
         
         return {
@@ -255,10 +218,7 @@ class ContextManager:
         }
     
     def get_retrieval_context(self, session_id: str) -> Dict:
-        """
-        Get context specifically for RAG retrieval.
-        This helps the retriever boost relevant products.
-        """
+        """Get context specifically for RAG retrieval"""
         session = self.get_or_create_session(session_id)
         
         return {
@@ -269,10 +229,7 @@ class ContextManager:
         }
     
     def should_show_comparison(self, session_id: str) -> bool:
-        """
-        Determine if user is likely comparing products.
-        Useful for deciding whether to show multiple products vs. single product.
-        """
+        """Determine if user is likely comparing products"""
         session = self.get_or_create_session(session_id)
         
         # Check last few queries for comparison indicators
@@ -286,10 +243,7 @@ class ContextManager:
         )
     
     def get_context_for_llm(self, session_id: str, max_exchanges: int = 3) -> str:
-        """
-        Format conversation context as text for LLM.
-        Returns a concise summary of recent conversation.
-        """
+        """Format conversation context as text for LLM"""
         session = self.get_or_create_session(session_id)
         
         if not session['history']:
@@ -319,11 +273,10 @@ class ContextManager:
         """Clear a specific session"""
         if session_id in self.sessions:
             del self.sessions[session_id]
+            print(f"🗑️  Cleared session: {session_id}")
     
     def clear_old_sessions(self, hours: int = 24):
         """Clear sessions older than specified hours"""
-        from datetime import timedelta
-        
         now = datetime.now()
         cutoff = now - timedelta(hours=hours)
         
@@ -337,9 +290,24 @@ class ContextManager:
         
         if old_sessions:
             print(f"🗑️  Cleared {len(old_sessions)} old sessions")
+        
+        return len(old_sessions)
+    
+    def get_session_count(self) -> int:
+        """Get number of active sessions"""
+        return len(self.sessions)
+    
+    def get_stats(self) -> Dict:
+        """Get context manager statistics"""
+        total_exchanges = sum(len(s['history']) for s in self.sessions.values())
+        
+        return {
+            'active_sessions': len(self.sessions),
+            'total_exchanges': total_exchanges,
+            'max_history_per_session': self.max_history
+        }
 
 
-# Convenience testing
 def test_context_manager():
     """Test the context manager"""
     print("\n" + "="*70)
@@ -353,17 +321,17 @@ def test_context_manager():
     exchanges = [
         {
             'query': "what's best for flavor?",
-            'products': [{'id': 'prod_1', 'name': 'V5 XL', 'category': 'main_products'}],
+            'products': [{'id': 'v5_xl', 'name': 'V5 XL', 'category': 'concentrates'}],
             'intent': 'shopping'
         },
         {
             'query': "tell me more about it",
-            'products': [{'id': 'prod_1', 'name': 'V5 XL', 'category': 'main_products'}],
+            'products': [{'id': 'v5_xl', 'name': 'V5 XL', 'category': 'concentrates'}],
             'intent': 'product_info'
         },
         {
             'query': "what about for beginners?",
-            'products': [{'id': 'prod_2', 'name': 'Core Deluxe', 'category': 'main_products'}],
+            'products': [{'id': 'core', 'name': 'Core Deluxe', 'category': 'concentrates'}],
             'intent': 'shopping'
         }
     ]
@@ -383,15 +351,24 @@ def test_context_manager():
     for key, value in summary.items():
         print(f"  {key}: {value}")
     
-    print("\nContext for LLM:")
-    print(cm.get_context_for_llm(session_id))
-    
     print("\nRetrieval Context:")
-    print(cm.get_retrieval_context(session_id))
+    ctx = cm.get_retrieval_context(session_id)
+    for key, value in ctx.items():
+        print(f"  {key}: {value}")
     
     # Test follow-up resolution
     follow_up = cm.resolve_follow_up(session_id, "tell me more about it")
     print(f"\nFollow-up resolved: {follow_up is not None}")
+    if follow_up:
+        print(f"  Referring to: {follow_up['referent_products'][0]['name']}")
+    
+    # Test stats
+    print("\nContext Manager Stats:")
+    stats = cm.get_stats()
+    for key, value in stats.items():
+        print(f"  {key}: {value}")
+    
+    print("\n" + "="*70)
 
 
 if __name__ == "__main__":

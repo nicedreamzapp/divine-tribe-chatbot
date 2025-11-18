@@ -1,112 +1,95 @@
 #!/usr/bin/env python3
 """
-product_database.py - Modern RAG orchestrator
-Integrates vector search + hybrid retrieval + context management
+product_database.py - Product database with modern RAG retrieval
+CLEANED: Optimized search, better error handling
 """
 
 import json
 from typing import List, Dict, Optional
-
-# Import our RAG components
-try:
-    from modules.vector_store import VectorStore
-    from modules.rag_retriever import RAGRetriever
-    MODERN_RAG_AVAILABLE = True
-except ImportError:
-    print("⚠️  Modern RAG components not found. Using fallback mode.")
-    MODERN_RAG_AVAILABLE = False
+from modules.vector_store import VectorStore
+from modules.rag_retriever import RAGRetriever
 
 
 class ProductDatabase:
     """
-    Modern RAG-powered product database.
-    
-    Architecture:
-    1. Vector Store - Semantic embeddings
-    2. RAG Retriever - Hybrid search + reranking
-    3. Business Rules - From your metadata
-    4. Context Awareness - From conversation history
+    Product database with hybrid RAG search
+    Combines semantic search + keyword matching + priority boosting
     """
     
-    def __init__(self, json_file: str = "products_clean.json"):
+    def __init__(self, json_file: str = 'products_clean.json'):
         self.json_file = json_file
         self.products = []
-        self.business_rules = {}
+        self.format_type = None
         
         # Initialize RAG components
         self.vector_store = None
         self.rag_retriever = None
         
         # Load products
-        self.load_products()
+        self._load_products()
         
-        # Build modern RAG system
-        if MODERN_RAG_AVAILABLE:
-            self._initialize_modern_rag()
-        else:
-            print("⚠️  Running in fallback mode (keyword search only)")
+        # Initialize modern RAG system
+        self._initialize_rag_system()
     
-    def load_products(self):
-        """Load products from JSON - supports both old and new formats"""
+    def _load_products(self):
+        """Load products from JSON file"""
+        print(f"📦 Loading products from {self.json_file}")
+        
         try:
-            with open(self.json_file, 'r') as f:
+            with open(self.json_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            # Check if this is the new clean format (flat list of products)
-            if 'products' in data and isinstance(data['products'], list):
-                print("📦 Loading products from CLEAN format (products_clean.json)")
-                
-                # Load products directly from list
-                self.products = data['products']
-                
-                # Extract metadata if available
-                metadata = data.get('metadata', {})
+            # Detect format
+            if isinstance(data, list):
+                self.products = data
+                self.format_type = 'clean'
                 print(f"✅ Loaded {len(self.products)} products")
                 print(f"   Format: Clean (no variations, no HTML)")
-                
-            else:
-                # Old format with categories
-                print("📦 Loading products from OLD format (products_organized.json)")
-                
-                # Extract business rules
-                metadata = data.get('metadata', {})
-                self.business_rules = metadata.get('business_rules', {})
-                
-                # Extract all products from categories
-                categories = data.get('categories', {})
-                
-                for category_name, category_data in categories.items():
-                    if isinstance(category_data, dict) and 'products' in category_data:
-                        for product in category_data['products']:
-                            # Enrich product with metadata
-                            product['category'] = category_name
-                            product['category_display'] = category_data.get('display_name', category_name)
-                            product['priority'] = category_data.get('priority', 2)
-                            
-                            self.products.append(product)
-                
-                print(f"✅ Loaded {len(self.products)} products")
-                print(f"✅ Business rules: {len(self.business_rules)}")
             
+            elif isinstance(data, dict) and 'products' in data:
+                self.products = data['products']
+                self.format_type = 'legacy'
+                print(f"✅ Loaded {len(self.products)} products")
+                print(f"   Format: Legacy (with variations)")
+            
+            else:
+                raise ValueError("Unknown JSON format")
+        
+        except FileNotFoundError:
+            print(f"❌ Error: {self.json_file} not found!")
+            self.products = []
+        
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON decode error: {e}")
+            self.products = []
+        
         except Exception as e:
-            print(f"❌ Error loading products: {e}")
+            print(f"❌ Unexpected error loading products: {e}")
             self.products = []
     
-    def _initialize_modern_rag(self):
-        """Initialize modern RAG components"""
+    def _initialize_rag_system(self):
+        """Initialize modern RAG retrieval system"""
+        if not self.products:
+            print("⚠️  No products loaded, skipping RAG initialization")
+            return
+        
         print("🚀 Initializing Modern RAG System...")
         
-        # Initialize vector store
-        self.vector_store = VectorStore(cache_file="product_embeddings.pkl")
+        try:
+            # Initialize vector store
+            self.vector_store = VectorStore()
+            self.vector_store.build_index(self.products)
+            
+            # Initialize RAG retriever
+            self.rag_retriever = RAGRetriever(vector_store=self.vector_store)
+            self.rag_retriever.load_products(self.products)
+            
+            print("✅ Modern RAG System ready!")
         
-        # Build embeddings (or load from cache)
-        self.vector_store.build_embeddings(self.products, force_rebuild=False)
-        
-        # Initialize RAG retriever
-        self.rag_retriever = RAGRetriever(vector_store=self.vector_store)
-        self.rag_retriever.load_products(self.products, self.business_rules)
-        
-        print("✅ Modern RAG System ready!")
+        except Exception as e:
+            print(f"⚠️  RAG initialization failed: {e}")
+            print("   Falling back to keyword search only")
+            self.rag_retriever = None
     
     def search(
         self,
@@ -115,157 +98,159 @@ class ProductDatabase:
         context: Optional[Dict] = None
     ) -> List[Dict]:
         """
-        Main search interface - uses modern RAG if available.
+        Search products using modern RAG retrieval
         
         Args:
             query: Search query
             max_results: Maximum number of results
-            context: Conversation context (from ContextManager)
-            
+            context: Optional conversation context
+        
         Returns:
-            List of product dictionaries, ranked by relevance
+            List of product dictionaries
         """
-        if not query or not self.products:
+        if not self.products:
+            print("⚠️  No products available")
             return []
         
-        # Use modern RAG if available
-        if MODERN_RAG_AVAILABLE and self.rag_retriever:
-            return self.rag_retriever.retrieve(query, max_results, context)
+        if not query or not query.strip():
+            print("⚠️  Empty query")
+            return []
         
-        # Fallback to simple keyword search
-        return self._fallback_search(query, max_results)
+        # Use RAG retriever if available
+        if self.rag_retriever:
+            try:
+                results = self.rag_retriever.retrieve(
+                    query=query,
+                    top_k=max_results,
+                    context=context
+                )
+                
+                print(f"🔍 Retrieved {len(results)} products for '{query}'")
+                if results:
+                    print(f"   Top: {results[0].get('name', 'Unknown')[:50]}...")
+                
+                return results
+            
+            except Exception as e:
+                print(f"❌ RAG search error: {e}")
+                return self._fallback_keyword_search(query, max_results)
+        
+        else:
+            # Fallback to simple keyword search
+            return self._fallback_keyword_search(query, max_results)
     
-    def _fallback_search(self, query: str, max_results: int) -> List[Dict]:
-        """
-        Fallback keyword search when modern RAG not available.
-        Simple but functional.
-        """
+    def _fallback_keyword_search(self, query: str, max_results: int = 5) -> List[Dict]:
+        """Simple keyword-based fallback search"""
         query_lower = query.lower()
-        results = []
+        query_words = query_lower.split()
+        
+        scored_products = []
         
         for product in self.products:
             score = 0
-            name = product['name'].lower()
+            name = product.get('name', '').lower()
             desc = product.get('description', '').lower()
             
-            # Simple scoring
-            if query_lower in name:
-                score += 100
-            elif query_lower in desc:
-                score += 50
-            
-            # Priority boost
-            priority = product.get('priority', 999)
-            if priority == 1:
-                score += 50
+            # Score based on keyword matches
+            for word in query_words:
+                if len(word) > 2:  # Skip short words
+                    if word in name:
+                        score += 10
+                    elif word in desc:
+                        score += 3
             
             if score > 0:
-                results.append((score, product))
+                scored_products.append((product, score))
         
-        # Sort and return top results
-        results.sort(key=lambda x: x[0], reverse=True)
-        return [p for _, p in results[:max_results]]
+        # Sort by score
+        scored_products.sort(key=lambda x: x[1], reverse=True)
+        
+        results = [p for p, _ in scored_products[:max_results]]
+        
+        print(f"🔍 Fallback search: {len(results)} products for '{query}'")
+        return results
     
-    def get_by_name(self, name: str) -> Optional[Dict]:
-        """Get product by exact name"""
-        name_lower = name.lower()
+    def get_product_by_name(self, name: str) -> Optional[Dict]:
+        """Get product by exact name match"""
         for product in self.products:
-            if product.get('name', '').lower() == name_lower:
+            if product.get('name', '').lower() == name.lower():
                 return product
         return None
     
-    def get_by_id(self, product_id: str) -> Optional[Dict]:
+    def get_product_by_id(self, product_id: str) -> Optional[Dict]:
         """Get product by ID"""
         for product in self.products:
             if product.get('id') == product_id:
                 return product
         return None
     
-    def get_main_products(self) -> List[Dict]:
-        """Get all main products (priority 1)"""
-        return [p for p in self.products if p.get('priority') == 1]
-    
     def get_products_by_category(self, category: str) -> List[Dict]:
         """Get all products in a category"""
-        return [p for p in self.products if p.get('category') == category]
+        return [
+            p for p in self.products
+            if p.get('category', '').lower() == category.lower()
+        ]
     
-    def rebuild_embeddings(self):
-        """Force rebuild of vector embeddings"""
-        if MODERN_RAG_AVAILABLE and self.vector_store:
-            print("🔄 Rebuilding embeddings...")
-            self.vector_store.build_embeddings(self.products, force_rebuild=True)
-            print("✅ Embeddings rebuilt!")
-        else:
-            print("⚠️  Modern RAG not available - cannot rebuild embeddings")
+    def get_all_categories(self) -> List[str]:
+        """Get list of all unique categories"""
+        categories = set()
+        for product in self.products:
+            cat = product.get('category')
+            if cat:
+                categories.add(cat)
+        return sorted(list(categories))
     
-    def get_search_stats(self) -> Dict:
-        """Get statistics about the search system"""
+    def get_stats(self) -> Dict:
+        """Get database statistics"""
         stats = {
             'total_products': len(self.products),
-            'main_products': len([p for p in self.products if p.get('priority') == 1]),
-            'accessories': len([p for p in self.products if p.get('priority') == 2]),
-            'replacement_parts': len([p for p in self.products if p.get('priority') == 3]),
-            'modern_rag_enabled': MODERN_RAG_AVAILABLE,
-            'embeddings_built': False
+            'format': self.format_type,
+            'categories': len(self.get_all_categories()),
+            'rag_enabled': self.rag_retriever is not None,
+            'vector_store_size': len(self.vector_store.embeddings) if self.vector_store else 0
         }
-        
-        if self.vector_store and self.vector_store.embeddings:
-            stats['embeddings_built'] = True
-            stats['embeddings_count'] = len(self.vector_store.embeddings)
-        
-        if self.rag_retriever:
-            stats['canonical_mappings'] = len(self.rag_retriever.canonical_map)
-        
         return stats
+    
+    def reload(self):
+        """Reload products from JSON file"""
+        print("🔄 Reloading products...")
+        self._load_products()
+        self._initialize_rag_system()
+        print("✅ Reload complete")
 
 
-# Convenience function
-def search_products(query: str, max_results: int = 5) -> List[Dict]:
-    """Quick search function"""
-    db = ProductDatabase()
-    return db.search(query, max_results)
-
-
-# Testing
 def test_product_database():
-    """Test the product database with modern RAG"""
+    """Test the product database"""
     print("\n" + "="*70)
-    print("PRODUCT DATABASE TEST (Modern RAG)")
+    print("PRODUCT DATABASE TEST")
     print("="*70 + "\n")
     
-    db = ProductDatabase('products_clean.json')  # Use clean format
+    # Initialize
+    db = ProductDatabase('products_clean.json')
     
-    # Print stats
-    print("\nSearch System Stats:")
-    stats = db.get_search_stats()
+    # Stats
+    print("\nDatabase Stats:")
+    stats = db.get_stats()
     for key, value in stats.items():
         print(f"  {key}: {value}")
     
-    # Test queries
+    # Test searches
     test_queries = [
         "v5",
-        "v5 xl",
-        "core",
-        "jars",
-        "best for flavor",
-        "beginner",
-        "ruby twist"
+        "core deluxe",
+        "ruby twist",
+        "concentrate vaporizer",
+        "dry herb"
     ]
     
-    print("\n" + "="*70)
-    print("SEARCH TESTS")
-    print("="*70)
-    
+    print("\nTest Searches:")
     for query in test_queries:
-        print(f"\n📝 Query: '{query}'")
+        print(f"\n  Query: '{query}'")
         results = db.search(query, max_results=3)
-        
-        if results:
-            for i, product in enumerate(results, 1):
-                print(f"  {i}. {product['name'][:60]}...")
-                print(f"     Priority: {product['priority']}, Category: {product['category']}")
-        else:
-            print("  No results found")
+        for i, product in enumerate(results, 1):
+            print(f"    {i}. {product.get('name', 'Unknown')[:50]}")
+    
+    print("\n" + "="*70)
 
 
 if __name__ == "__main__":

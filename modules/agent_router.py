@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 agent_router.py - Routes queries to appropriate handlers
-All product queries go to RAG search (products_clean.json)
+FIXED: Creative/story queries go to general_mistral, not troubleshooting
 """
 
 from typing import Dict, Tuple, Optional
@@ -21,7 +21,7 @@ class AgentRouter:
     """
     Routes queries intelligently:
     1. Troubleshooting/How-To → CAG cache
-    2. Product queries → RAG search (products_clean.json)
+    2. Product queries → RAG search
     3. Company info → CAG cache
     4. General knowledge → Mistral
     """
@@ -61,7 +61,6 @@ class AgentRouter:
         self.troubleshooting_keywords = [
             'broken', 'not working', 'stopped working', 'won\'t work', 'doesn\'t work',
             'leaking', 'leaky', 'cracked', 'damaged', 'defective',
-            'issue', 'problem', 'help', 'fix', 'repair',
             'won\'t heat', 'no vapor', 'not heating', 'burnt', 'taste bad',
             'resistance', 'ohm', 'reading'
         ]
@@ -98,7 +97,7 @@ class AgentRouter:
             'vaporizer', 'vaporizers', 'vape', 'vapes', 'atomizer', 'atomizers', 'erig', 'e-rig', 'enail', 'e-nail',
             
             # Materials
-            'concentrate', 'concentrates', 'wax', 'dab', 'dabs', 'oil', 'shatter',
+            'concentrate', 'concentrates', 'wax', 'dab', 'dabs', 'oil', 'shatter', 'rosin', 'resin',
             'dry herb', 'flower', 'herb', 'bud',
             
             # Accessories
@@ -113,7 +112,7 @@ class AgentRouter:
         ]
     
     def route(self, query: str, context: Optional[Dict] = None, session_id: str = "default") -> Dict:
-        """Main routing logic"""
+        """Main routing logic - FIXED for creative queries"""
         query_lower = query.lower().strip()
         
         # ENTERPRISE PREPROCESSING
@@ -158,7 +157,7 @@ class AgentRouter:
         
         # ROUTE 2: CUSTOMER SERVICE
         
-        # 2A: Troubleshooting
+        # 2A: Troubleshooting (FIXED - excludes creative queries)
         if self._is_troubleshooting(query_lower):
             response = self.cache.get_troubleshooting_response(query)
             return {
@@ -257,7 +256,24 @@ class AgentRouter:
         return any(brand in query for brand in self.competitor_brands)
     
     def _is_troubleshooting(self, query: str) -> bool:
-        """Check if user has a technical problem"""
+        """
+        Check if user has a technical problem
+        FIXED: Excludes creative/story/funny queries
+        """
+        # Don't match general help phrases
+        if query in ['help', 'i need help', 'can you help', 'help me', 'i dont know anything about vapes help']:
+            return False
+        
+        # FIXED: Don't match creative/story/funny requests
+        creative_indicators = [
+            'story', 'funny', 'joke', 'tell me about',
+            'do bankers', 'are you', 'tell me a',
+            'write', 'create', 'make up', 'imagine'
+        ]
+        if any(indicator in query for indicator in creative_indicators):
+            return False
+        
+        # Only match specific technical issues
         return any(keyword in query for keyword in self.troubleshooting_keywords)
     
     def _is_how_to_question(self, query: str) -> bool:
@@ -292,7 +308,7 @@ What would you like to know about Divine Tribe specifically?
 🌐 Shop: https://ineedhemp.com"""
     
     def execute_rag_search(self, query: str, max_results: int = 5, session_id: str = "default") -> str:
-        """Execute RAG search and format response - prioritize main kits, never show replacement parts"""
+        """Execute RAG search and format response - prioritize main kits"""
         # Get context if available
         context = None
         if self.context_manager:
