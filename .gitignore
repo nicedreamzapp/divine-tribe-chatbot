@@ -1,8 +1,32 @@
+# Secrets & Tokens
 config.py
+*.env
 .env
+telegram_handler.py
+telegram_bot_listener.py
+*_token.txt
+*_key.txt
+
+# Logs & Training Data
 conversation_logs/
+human_responses/
 stress_test_*.json
+*.log
+
+# Models & Embeddings
 *.pkl
+*.pth
+*.safetensors
+*.ckpt
+
+# Python
 __pycache__/
 *.pyc
+venv/
+.venv/
+
+# System
 .DS_Store
+
+# Launchers (keep local only)
+*.command

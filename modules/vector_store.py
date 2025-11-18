@@ -75,8 +75,8 @@ class VectorStore:
         product_texts = []
         product_ids = []
         
-        for product in products:
-            product_id = product['id']
+        for i, product in enumerate(products):
+            product_id = product.get('id', product.get('name', f'product_{i}'))
             
             # Create rich text representation for embedding
             text = self._create_embedding_text(product)
@@ -88,7 +88,7 @@ class VectorStore:
         # Generate embeddings in batch (faster)
         print("🧠 Generating embeddings...")
         embeddings_array = self.model.encode(
-            product_texts, 
+            product_texts,
             show_progress_bar=True,
             batch_size=32
         )

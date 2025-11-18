@@ -1,100 +1,43 @@
 """
-CAG Cache - Complete Version Compatible with Agent Router
-Enhanced with Reddit community solutions and all required methods
+CAG Cache - Troubleshooting, How-To, and Company Info Only
+NO product cache - all products go through RAG search
 """
 
 class CAGCache:
-    """
-    Fast lookup system for frequently asked questions
-    Uses Reddit-proven solutions for troubleshooting
-    Compatible with AgentRouter
-    """
     
     def __init__(self):
-        # Main product cache with full details
-        self.cached_products = {
-            'v5': {
-                'name': 'V5',
-                'full_name': 'V5 Advanced Concentrate Atomizer',
-                'description': 'The legendary V5 - Divine Tribe\'s most popular atomizer. Features a silicon carbide cup that delivers pure flavor and massive clouds. Works with any 510 threaded mod.',
-                'price': '$40-50',
-                'features': [
-                    '✨ Silicon carbide (SiC) cup - incredible flavor',
-                    '🔥 Works 350-500°F',
-                    '⚡ Requires mod with 30W+ capability',
-                    '🎯 Perfect for beginners and experts',
-                    '🧼 Easy to clean - qtip between dabs'
-                ],
-                'keywords': ['what is v5', 'what is the v5', 'tell me about v5', 'buy v5', 'v five atomizer', 'version 5'],
-                'url': 'https://ineedhemp.com/product/v5/'
+        
+        # Product comparisons (keep these)
+        self.comparisons = {
+            'v5_vs_v5xl': {
+                'question': 'What is the difference between V5 and V5 XL?',
+                'answer': """**V5 vs V5 XL - The Only Differences:**
+
+🔧 **Top Piece:** XL has a longer top piece
+📏 **Cup Size:** XL has a bigger cup (30% larger)
+
+That's it! Same technology, same quality. XL just holds more concentrate per load.
+
+**Which to choose:**
+- V5: Standard dabs, most users
+- V5 XL: Bigger dabs, longer sessions
+
+Both use same ceramic cups, same heating tech."""
             },
-            'v5_xl': {
-                'name': 'V5 XL',
-                'full_name': 'V5 XL Extended Life Atomizer',
-                'description': 'Everything you love about the V5, but BIGGER! 30% larger cup means more concentrate per load and even better heat distribution.',
-                'price': '$50-60',
-                'features': [
-                    '🚀 30% larger SiC cup than regular V5',
-                    '💨 Massive clouds and extended sessions',
-                    '🔥 Same great SiC technology',
-                    '⚡ Needs 35W+ mod',
-                    '👑 The king of Divine Tribe atomizers'
-                ],
-                'keywords': ['v5 xl', 'v5xl', 'v 5 xl', 'extra large', 'bigger v5'],
-                'url': 'https://ineedhemp.com/product/v5-xl/'
-            },
-            'core_deluxe': {
-                'name': 'Core 2.0 Deluxe',
-                'full_name': 'Core 2.0 Deluxe Wireless Enail',
-                'description': 'The ultimate all-in-one e-rig. No mod needed! Built-in battery, water attachment included, and the same legendary SiC cup technology.',
-                'price': '$199-249',
-                'features': [
-                    '📱 Complete kit - nothing else needed',
-                    '🔋 Built-in 3000mAh battery',
-                    '💧 Glass bubbler included',
-                    '🎯 Digital temp control (Bluetooth app)',
-                    '✈️ Portable and discreet',
-                    '🏆 Best value complete setup'
-                ],
-                'keywords': ['core', 'core 2', 'core deluxe', 'e-rig', 'enail', 'wireless', 'all in one'],
-                'url': 'https://ineedhemp.com/product/core-2-0-deluxe/'
-            },
-            'nice_dreamz': {
-                'name': 'Nice Dreamz Vaporizer',
-                'full_name': 'Nice Dreamz Portable Flower Vaporizer',
-                'description': 'Premium dry herb vaporizer with true convection heating. Perfect for flower enthusiasts who want pure, flavorful vapor.',
-                'price': '$129-149',
-                'features': [
-                    '🌿 Designed for dry herb (flower)',
-                    '🌡️ Precise temperature control',
-                    '🔥 True convection heating',
-                    '🔋 Long battery life',
-                    '💨 Pure flavor, no combustion',
-                    '📏 Compact and portable'
-                ],
-                'keywords': ['nice dreamz', 'nicedreamz', 'nice dreams', 'flower', 'dry herb', 'herb vaporizer'],
-                'url': 'https://ineedhemp.com/product/nice-dreamz/'
-            },
-            'lightning_pen': {
-                'name': 'Lightning Pen',
-                'full_name': 'Lightning Pen Concentrate Vaporizer',
-                'description': 'Ultra-discreet pen-style vaporizer for concentrates. Perfect for on-the-go sessions with reliable performance.',
-                'price': '$39-49',
-                'features': [
-                    '✏️ Pen-style - super discreet',
-                    '⚡ Quick heat-up time',
-                    '🎯 Easy to use - perfect for beginners',
-                    '💼 Pocket-friendly size',
-                    '🔋 USB rechargeable'
-                ],
-                'keywords': ['lightning pen', 'pen', 'lightning', 'discrete', 'portable pen'],
-                'url': 'https://ineedhemp.com/product/lightning-pen/'
+            'core_vs_fogger': {
+                'question': 'Core vs Nice Dreamz Fogger?',
+                'answer': """**Core 2.0 Deluxe:** Easy-to-use eRig built like a tank. Simple, reliable, beginner-friendly.
+
+**Nice Dreamz Fogger:** Forced-air eRig - pushes vapor to you. Just breathe in, the device does the work.
+
+**Which to choose:**
+- Core: Want simplicity and durability
+- Fogger: Want effortless hits with forced air"""
             }
         }
-        
+
         # REDDIT-PROVEN TROUBLESHOOTING SOLUTIONS
         self.troubleshooting = {
-            # V5 Resistance Issues (from r/DivineTribeVaporizers)
             'v5_resistance_high': {
                 'problem': 'V5 showing high resistance (0.60+ ohms) or "Check Atomizer"',
                 'reddit_solutions': [
@@ -135,89 +78,88 @@ class CAGCache:
                 'problem': 'V5 not producing vapor or heating slowly',
                 'reddit_solutions': [
                     '⚡ **Check wattage**: Need 30-35W minimum (XL needs 35-40W)',
-                    '🔥 **Temperature settings**: Start at 380-400°F',
-                    '📊 **TCR mode**: Use TCR 245-250 for best results',
+                    '🌡️ **Temperature too low**: Try 400-420°F',
                     '🔋 **Battery charge**: Low battery = weak heating',
-                    '🧹 **Dirty cup**: Buildup reduces heat transfer - clean with alcohol',
-                    '⏱️ **Preheat longer**: Give it 15-20 seconds before hitting'
+                    '🧹 **Clean cup**: Buildup blocks heat transfer',
+                    '📊 **Check resistance**: Should be 0.40-0.52 ohms',
+                    '🔧 **Mod settings**: Make sure temp control is enabled (Ni/TCR mode)'
                 ],
-                'keywords': ['not heating', 'no vapor', 'weak hits', 'not working', 'cold', "won't heat", 'barely heats', "doesn't get hot", 'not reaching temp']
+                'perfect_flavor_settings': 'TCR 245-250, 380-400°F, 33-35W',
+                'keywords': ['not heating', 'no vapor', 'weak', 'barely heating', 'cold']
             },
-            'v5_chazzed': {
-                'problem': 'V5 cup is chazzed (burnt/discolored)',
+            'v5_burnt_taste': {
+                'problem': 'V5 producing burnt or bad taste',
                 'reddit_solutions': [
-                    '🔥 **Burn-off method (BEST)**: Hold mod upside down, fire at 38W for 2 minutes',
-                    '⚡ **For Core users**: Remove cup, attach to any mod that does 40W',
-                    '⏱️ **Repeat until clean**: Let cool between cycles, repeat until no vapor',
-                    '🧹 **Prevention**: Q-tip after every session, don\'t exceed 450°F',
-                    '💧 **Iso soak backup**: If burn-off doesn\'t work, soak in 91%+ iso overnight'
+                    '🌡️ **Temperature too high**: Lower to 380-400°F',
+                    '⚡ **Wattage too high**: Lower to 32-35W',
+                    '🧹 **Cup needs cleaning**: Old buildup tastes burnt',
+                    '🔄 **Cup replacement**: After 100+ sessions, cup degrades',
+                    '📏 **Less material**: Overloading causes burning'
                 ],
-                'prevention': 'Clean after every use, keep temps under 420°F for daily use',
-                'keywords': ['chazzed', 'chaz', 'burnt cup', 'discolored', 'black residue', 'cleaning cup']
+                'prevention': 'Clean after every session with alcohol wipe or burn-off cleaning',
+                'keywords': ['burnt', 'bad taste', 'nasty', 'harsh', 'gross taste', 'metallic']
             },
-            'v5_burning_taste': {
-                'problem': 'V5 producing burnt or harsh taste',
+            'core_not_heating': {
+                'problem': 'Core 2.0 not heating or heating slowly',
                 'reddit_solutions': [
-                    '🌡️ **Lower temperature**: Start at 360-380°F for flavor',
-                    '🧹 **Clean the cup**: Burnt residue ruins flavor - qtip after every session',
-                    '📏 **Smaller loads**: Big loads burn on edges',
-                    '⏱️ **Shorter draws**: Long draws overheat the oil',
-                    '🔄 **New coil**: After 100+ sessions, cups lose efficiency'
+                    '🔋 **Charge it**: Needs good battery charge',
+                    '🌡️ **Increase temp**: Try 450-500°F',
+                    '🧹 **Clean cup**: Remove cup and clean with alcohol',
+                    '🔄 **Reset device**: Turn off and on',
+                    '📱 **Check app**: Make sure temp settings saved',
+                    '⚡ **Firmware update**: Check for updates in app'
                 ],
-                'perfect_flavor_settings': '360-380°F, rice grain loads, clean after every use',
-                'keywords': ['burnt', 'burning', 'harsh', 'bad taste', 'burnt taste']
+                'if_still_broken': 'Email matt@ineedhemp.com with order number',
+                'keywords': ['core not heating', 'core cold', 'core weak']
             },
             'core_battery': {
-                'problem': 'Core 2.0 battery issues',
+                'problem': 'Core battery issues (not charging, dies quickly)',
                 'reddit_solutions': [
-                    '🔌 **Charging issues**: Use provided USB-C cable, try different adapter',
-                    '🔋 **Battery life short**: Lower temperature, shorter sessions',
-                    '❄️ **Cold weather**: Battery drains faster in cold - warm it up',
-                    '🔄 **Power cycle**: Turn off completely, charge fully, restart',
-                    '📱 **App connection**: Update app, toggle Bluetooth off/on'
+                    '🔌 **Check cable**: Try different USB-C cable',
+                    '⚡ **Check power source**: Use wall adapter, not computer USB',
+                    '🔋 **Battery degradation**: After 300+ cycles, battery weakens',
+                    '🌡️ **High temps drain faster**: Lower temp = longer battery',
+                    '📱 **Standby drain**: Turn off when not using',
+                    '❄️ **Cold weather**: Battery performs worse in cold'
                 ],
-                'keywords': ['core battery', 'wont charge', 'battery dead', 'core not charging']
-            },
-            'core_bluetooth': {
-                'problem': 'Core 2.0 Bluetooth connection issues',
-                'reddit_solutions': [
-                    '📱 **Forget and repair**: Delete device from Bluetooth, pair again',
-                    '🔄 **Restart both**: Phone and Core completely off/on',
-                    '📍 **Location permissions**: App needs location enabled',
-                    '🔋 **Core battery**: Won\'t connect if battery under 20%',
-                    '📲 **App update**: Make sure you have latest version',
-                    '📏 **Distance**: Keep phone within 10 feet during use'
-                ],
-                'keywords': ['bluetooth', 'wont connect', 'app', 'connection', 'pairing']
-            },
-            'arctic_fox_setup': {
-                'problem': 'V5 not working properly with Arctic Fox firmware',
-                'reddit_solutions': [
-                    '🔧 **Use TCR mode**: Set TCR to 245-250 (not Ni200)',
-                    '⚡ **Wattage**: Set to 33-35W',
-                    '🌡️ **Temperature**: Start at 380-400°F',
-                    '🔒 **Lock resistance**: Lock at room temp (0.45-0.48 ohms typical)',
-                    '📊 **Profile settings**: Pre-heat 1 second, PI-Regulator ON',
-                    '🔄 **If still issues**: Try firmware reset and reconfigure'
-                ],
-                'if_still_broken': 'Check r/DivineTribeVaporizers for Arctic Fox profiles - many users share their working configs',
-                'keywords': ['arctic fox', 'arcticfox', 'af firmware', 'wont get to temp', "won't reach temp", 'tcr', 'firmware']
-            },
-            'mod_compatibility': {
-                'problem': 'Mod compatibility or setup issues with V5',
-                'reddit_solutions': [
-                    '⚡ **Minimum wattage**: Mod must support 30W+ (35W+ for XL)',
-                    '🌡️ **TC support required**: Must have temperature control',
-                    '🔋 **Battery**: Use quality 18650s (Sony VTC6, Samsung 25R)',
-                    '📊 **Recommended mods**: Pico, Wismec, Aegis series work great',
-                    '🔧 **Settings**: TCR 245-250, 33-35W, lock resistance at room temp'
-                ],
-                'keywords': ['mod', 'what mod', 'mod recommendation', 'compatible mod', 'which mod', 'pico', 'wismec', 'aegis']
+                'if_still_broken': 'Battery should last 20-30 sessions. If not, email matt@ineedhemp.com',
+                'keywords': ['battery', 'charging', 'wont charge', 'dies fast', 'dead']
             }
         }
         
         # CUSTOMER SERVICE RESPONSES
         self.support_info = {
+            'about_divine_tribe': '''
+🏢 **About Divine Tribe**
+
+**Company Info:**
+- **Founded by**: Matt Macosko
+- **Location**: Humboldt County, California
+- **Specializes in**: Cannabis vaporizers (concentrates & dry herb)
+- **Philosophy**: Clean flavor, rebuildable technology, direct pricing
+
+**Product Lines:**
+- 🔥 Concentrate Vaporizers: V5, V5 XL atomizers, Core eRig
+- 🌿 Dry Herb: Ruby Twist ball vape
+- 👕 Hemp Clothing: T-shirts, hoodies, boxers
+- 🏺 Accessories: Storage jars, glass bubblers, carb caps
+
+**Why Divine Tribe:**
+✅ Made in USA / Quality materials
+✅ Rebuildable = Save money long-term
+✅ Direct pricing (no middleman markup)
+✅ Excellent customer service
+✅ Eco-friendly practices
+✅ Wholesale options available
+
+**Community:**
+- 💬 Active Reddit: r/DivineTribeVaporizers
+- 🎮 Discord: https://discord.com/invite/aC4Pv6J75s
+- 📺 YouTube: @divinetribe1
+
+📧 **Contact**: matt@ineedhemp.com
+🌐 **Shop**: https://ineedhemp.com
+            ''',
             'warranty': '''
 🛡️ **Divine Tribe Warranty:**
 
@@ -282,72 +224,7 @@ For tech support, Reddit and Discord often have instant answers from the communi
             '''
         }
         
-        # PRODUCT COMPARISONS
-        self.comparisons = {
-            'v5_vs_v5xl': '''
-**V5 vs V5 XL - Which to choose?**
-
-**Regular V5** 💰 $40-50
-✅ Perfect for solo use
-✅ More portable
-✅ Easier to clean
-✅ Uses less concentrate
-Choose if: Budget-conscious, solo sessions, new to dabbing
-
-**V5 XL** 💰 $50-60  
-✅ 30% bigger cup
-✅ Massive clouds
-✅ Better for sharing
-✅ Longer sessions
-Choose if: Want huge hits, share with friends, have concentrate to spare
-
-**Bottom line**: Can't go wrong either way! XL is worth the $10 if you want bigger sessions.
-            ''',
-            'v5_vs_core': '''
-**V5 vs Core 2.0 - Mod or E-rig?**
-
-**V5 Setup** 💰 $100-150 total (V5 + mod)
-✅ More flexible (swap atomizers)
-✅ Replaceable batteries
-✅ More power options
-✅ Cheaper to start
-❌ Requires buying separate mod
-❌ Learning curve for settings
-Choose if: Already have a mod, want flexibility, don't mind learning
-
-**Core 2.0 Deluxe** 💰 $200-250 complete
-✅ Everything included (glass, battery, atomizer)
-✅ App control (super easy)
-✅ More portable
-✅ Looks cleaner
-❌ Can't swap batteries
-❌ Limited to Core atomizer
-Choose if: Want complete setup, value convenience, like app control
-
-**Bottom line**: Core is "iPhone" (just works), V5 is "Android" (more control).
-            ''',
-            'flower_vs_concentrate': '''
-**Flower vs Concentrate - Which Vape?**
-
-**Nice Dreamz** (Flower) 🌿 $129-149
-✅ For dry herb / flower
-✅ More natural experience
-✅ Cheaper per session
-✅ True convection heating
-Choose if: You prefer flower, want longer sessions, more budget-friendly material
-
-**V5 or Core** (Concentrate) 💎 $40-250
-✅ For wax, shatter, rosin
-✅ More potent
-✅ More discreet
-✅ Faster effects
-Choose if: You prefer concentrates, want stronger effects, value discretion
-
-**Can't decide?** Many people have both! Different experiences for different occasions.
-            '''
-        }
-        
-        # HOW-TO GUIDES
+        # HOW-TO GUIDES (updated cleaning, removed preheat)
         self.how_to = {
             'v5_first_time': '''
 **First Time Using Your V5:**
@@ -357,11 +234,10 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
 3. **Check resistance** - Should read 0.40-0.52 ohms
 4. **Set temp** - Start at 380°F (or 30W in wattage mode)
 5. **Rice grain size** - Seriously, don't overfill!
-6. **Preheat 10 seconds** - Let it warm up
-7. **Draw slowly** - Gentle, steady draw
-8. **Q-tip while warm** - Clean between sessions
+6. **Draw slowly** - Gentle, steady draw
+7. **Clean between sessions** - Alcohol wipe or burn-off cleaning
 
-**Pro tip**: First few sessions, season the cup at 450°F empty for 20 seconds, then q-tip. This burns off any manufacturing residue.
+**Pro tip**: First few sessions, do a burn-off at 450°F empty for 20 seconds to remove any manufacturing residue.
             ''',
             'v5_settings': '''
 **Optimal V5 Settings:**
@@ -386,24 +262,24 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
             'cleaning': '''
 **How to Clean Your V5:**
 
-**After Every Session (30 seconds)**:
-1. While cup is still warm, use dry q-tip
+**After Every Session (Best method)**:
+1. While cup is still warm, use alcohol wipe
 2. Swab the cup gently
 3. Done! This prevents buildup
 
-**Deep Clean (Weekly)**:
-1. Remove cup from atomizer
-2. Soak cup in 91%+ isopropyl alcohol (10 mins)
-3. Rinse with water
-4. Let air dry completely
-5. Reassemble
+**Burn-Off Cleaning (Weekly)**:
+1. Empty cup completely
+2. Set to 450°F or 38W
+3. Fire for 20 seconds
+4. Let cool, wipe with alcohol wipe
+5. Repeat if needed
 
 **Pro tips**:
 - Never clean with water while hot (can crack!)
 - Don't forget to clean the threads too
 - Replace cup after 100-150 sessions for best flavor
 
-**For Core 2.0**: Same process, but also clean the glass bubbler regularly!
+**For Core 2.0**: Same process, but also clean the glass bubbler regularly with alcohol!
             ''',
             'mod_recommendations': '''
 **Best Mods for V5:**
@@ -419,54 +295,68 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
 - Pico 25
 
 **Premium** 💰 $80-150:
-- DNA mods (Lost Vape, etc.)
 - Aegis Legend
-- YiHi SX minis
+- Voopoo Drag 3
+- Geekvape Aegis X
 
-**What you need**:
-- At least 30W output (35W+ for XL)
-- Temperature Control (TC) support
-- Replaceable 18650 battery
-- Reputable brand
+**Required features**:
+- Temperature control (TC) mode
+- At least 75W
+- 510 threading
+- Supports Ni/TCR modes
 
-**Pro tip**: Aegis series is super durable (drop-proof, water-resistant). Great for daily use!
+**Matt's pick**: Pico 75W - cheap, reliable, perfect for V5!
             '''
         }
-        
+    
+    # DISABLED: Product cache - all products now go through RAG
     def check_cache(self, query: str) -> str:
-        """
-        Check if query matches a cached product
-        Returns product key if found, None otherwise
-        """
-        query_lower = query.lower()
-        
-        for product_key, product_data in self.cached_products.items():
-            if any(keyword in query_lower for keyword in product_data['keywords']):
-                return product_key
-        
+        """DISABLED - returns None to force RAG search"""
+        return None
+    
+    def format_product_response(self, product_key: str) -> str:
+        """DISABLED - was using hardcoded fake data"""
         return None
     
     def get_troubleshooting(self, query: str) -> dict:
-        """
-        Check if query matches a troubleshooting issue
-        Returns troubleshooting data if found, None otherwise
-        """
+        """Get troubleshooting solution based on keywords"""
         query_lower = query.lower()
         
         for issue_key, issue_data in self.troubleshooting.items():
-            if any(keyword in query_lower for keyword in issue_data['keywords']):
+            keywords = issue_data.get('keywords', [])
+            if any(keyword in query_lower for keyword in keywords):
                 return issue_data
         
         return None
     
-    def get_support_info(self, query: str) -> str:
-        """
-        Check if query is asking for customer service info
-        """
+    def get_how_to(self, query: str) -> str:
+        """Get how-to guide based on query"""
         query_lower = query.lower()
         
+        if 'first time' in query_lower or 'new to' in query_lower or 'just got' in query_lower:
+            return self.how_to.get('v5_first_time')
+        
+        if 'settings' in query_lower or 'temp' in query_lower or 'wattage' in query_lower or 'tcr' in query_lower:
+            return self.how_to.get('v5_settings')
+        
+        if 'clean' in query_lower or 'maintenance' in query_lower:
+            return self.how_to.get('cleaning')
+        
+        if 'mod' in query_lower and any(w in query_lower for w in ['recommend', 'which', 'what', 'best']):
+            return self.how_to.get('mod_recommendations')
+        
+        return None
+    
+    def get_support_info(self, query: str) -> str:
+        """Check if query is asking for customer service info"""
+        query_lower = query.lower()
+        
+        # Company info queries
+        if any(phrase in query_lower for phrase in ['about divine tribe', 'who is divine tribe', 'divine tribe company', 'what is divine tribe', 'tell me about divine tribe', 'how about divine tribe', 'what kind of']):
+            return self.support_info.get('about_divine_tribe')
+        
         support_keywords = {
-            'warranty': ['warranty', 'guarantee', 'broken', 'defect'],
+            'warranty': ['warranty', 'guarantee', 'defect'],
             'returns': ['return', 'refund', 'send back'],
             'shipping': ['shipping', 'delivery', 'tracking', 'when will'],
             'order_status': ['order status', 'where is my', 'order', 'shipped'],
@@ -480,89 +370,43 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
         return None
     
     def get_comparison(self, query: str) -> str:
-        """
-        Check if query is asking for a product comparison
-        """
+        """Check if query is asking for a product comparison"""
         query_lower = query.lower()
         
-        if ('v5' in query_lower and 'xl' in query_lower) or ('v5' in query_lower and 'xlarge' in query_lower):
-            return self.comparisons['v5_vs_v5xl']
+        if ('v5' in query_lower or 'v 5' in query_lower) and ('xl' in query_lower or 'xlarge' in query_lower or 'extra large' in query_lower):
+            comp = self.comparisons.get('v5_vs_v5xl')
+            return comp['answer'] if isinstance(comp, dict) else comp
         
-        if ('v5' in query_lower or 'mod' in query_lower) and 'core' in query_lower:
-            return self.comparisons['v5_vs_core']
-        
-        if ('flower' in query_lower or 'herb' in query_lower) and ('concentrate' in query_lower or 'wax' in query_lower or 'dab' in query_lower):
-            return self.comparisons['flower_vs_concentrate']
+        if ('core' in query_lower and 'fogger' in query_lower) or ('core' in query_lower and 'nice dreamz' in query_lower):
+            comp = self.comparisons.get('core_vs_fogger')
+            return comp['answer'] if isinstance(comp, dict) else comp
         
         if 'vs' in query_lower or 'versus' in query_lower or 'compared' in query_lower or 'difference between' in query_lower:
-            return "I can compare products for you! Which ones are you looking at? (e.g., V5 vs V5 XL, V5 vs Core, flower vs concentrate)"
+            return "I can compare products for you! Which ones are you looking at?"
         
         return None
     
     def get_category_listing(self, query: str) -> str:
-        """
-        Check if query is asking for a category listing
-        Required by AgentRouter
-        """
+        """Check if query is asking for a category listing"""
         query_lower = query.lower()
         
-        # Check if asking for listings
-        if any(phrase in query_lower for phrase in ['show me all', 'what jars', 'what atomizers', 'what coils', 'list of']):
-            return "category_listing_detected"
+        listing_phrases = [
+            'show me all', 'list all', 'what jars', 'what atomizers',
+            'what products', 'whole list', 'complete list', 'everything you have',
+            'all your', 'all the'
+        ]
+        
+        if any(phrase in query_lower for phrase in listing_phrases):
+            return "category_listing"
         
         return None
-    
-    def get_how_to(self, query: str) -> str:
-        """
-        Check if query is asking for how-to instructions
-        """
-        query_lower = query.lower()
-        
-        # Check for cleaning first (specific)
-        if any(word in query_lower for word in ['clean', 'cleaning', 'how to clean', 'maintenance']):
-            return self.how_to.get('cleaning')
-        
-        # Check for settings
-        if any(word in query_lower for word in ['settings', 'what temp', 'tcr', 'what watt']):
-            return self.how_to.get('v5_settings')
-        
-        # Check for first time use
-        if any(phrase in query_lower for phrase in ['first time', 'how to use', 'getting started', 'new to', 'just got']):
-            return self.how_to.get('v5_first_time')
-        
-        # Check for mod recommendations
-        if any(word in query_lower for word in ['what mod', 'recommend mod', 'best mod', 'which mod']):
-            return self.how_to.get('mod_recommendations')
-        
-        return None
-    
-    def format_product_response(self, product_key: str) -> str:
-        """
-        Format a complete product response with all details
-        Returns the full cached response - NO truncation
-        """
-        product = self.cached_products.get(product_key)
-        if not product:
-            return None
-        
-        # Build complete response
-        response = f"**{product['full_name']}** 💰 {product['price']}\n\n"
-        response += f"{product['description']}\n\n"
-        response += "**Key Features:**\n"
-        for feature in product['features']:
-            response += f"{feature}\n"
-        response += f"\n[Shop Now]({product['url']})"
-        
-        return response
     
     def format_troubleshooting_response(self, issue_data: dict) -> str:
-        """
-        Format a troubleshooting response with Reddit solutions
-        """
+        """Format a troubleshooting response with Reddit solutions"""
         response = f"**Problem**: {issue_data['problem']}\n\n"
         response += "**Community-Proven Solutions** (from r/DivineTribeVaporizers):\n\n"
         
-        for i, solution in enumerate(issue_data['reddit_solutions'], 1):
+        for solution in issue_data['reddit_solutions']:
             response += f"{solution}\n\n"
         
         if 'prevention' in issue_data:
@@ -576,20 +420,24 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
         
         return response
     
+    # Agent router compatibility methods
     def get_troubleshooting_response(self, query: str) -> str:
-        """
-        Get troubleshooting response for a query
-        Alias method for agent_router compatibility
-        """
-        issue = self.get_troubleshooting(query)
-        if issue:
-            return self.format_troubleshooting_response(issue)
-        return None
+        """Agent router compatibility"""
+        try:
+            issue = self.get_troubleshooting(query)
+            return self.format_troubleshooting_response(issue) if issue else "I'm not sure about that. Email matt@ineedhemp.com for help!"
+        except Exception as e:
+            print(f"Error in get_troubleshooting_response: {e}")
+            return "I'm having trouble with that. Email matt@ineedhemp.com for help!"
 
     def get_how_to_response(self, query: str) -> str:
         """Agent router compatibility"""
-        return self.get_how_to(query)
-    
+        try:
+            return self.get_how_to(query) or "I'm not sure about that. Email matt@ineedhemp.com for help!"
+        except Exception as e:
+            print(f"Error in get_how_to_response: {e}")
+            return "I'm having trouble with that. Email matt@ineedhemp.com for help!"
+
     def get_comparison_response(self, query: str) -> str:
         """Agent router compatibility"""
         return self.get_comparison(query)
@@ -598,56 +446,14 @@ Choose if: You prefer concentrates, want stronger effects, value discretion
         """Agent router compatibility"""
         return self.get_support_info(query)
     
-    def get_troubleshooting_response(self, query: str) -> str:
-        """Agent router compatibility"""
-        issue = self.get_troubleshooting(query)
-        return self.format_troubleshooting_response(issue) if issue else None
-    
-    def get_category_listing(self, query: str) -> str:
-        """Agent router compatibility"""
-        query_lower = query.lower()
-        if any(phrase in query_lower for phrase in ['show me all', 'what jars', 'what atomizers']):
-            return "category_listing"
-        return None
-
     def get_warranty_response(self, query: str) -> str:
         """Agent router compatibility - warranty info"""
-        if 'warranty' in query.lower() or 'guarantee' in query.lower():
-            return self.support_info.get('warranty')
-        return None
+        return self.support_info.get('warranty', '')
     
     def get_return_response(self, query: str) -> str:
         """Agent router compatibility - return info"""
-        if 'return' in query.lower() or 'refund' in query.lower():
-            return self.support_info.get('returns')
-        return None
-    
+        return self.support_info.get('returns', '')
+
     def get_order_response(self, query: str) -> str:
         """Agent router compatibility - order info"""
-        if 'order' in query.lower() or 'tracking' in query.lower() or 'shipping' in query.lower():
-            return self.support_info.get('order_status')
-        return None
-    
-    def get_how_to_response(self, query: str) -> str:
-        """Agent router compatibility"""
-        return self.get_how_to(query)
-    
-    def get_comparison_response(self, query: str) -> str:
-        """Agent router compatibility"""
-        return self.get_comparison(query)
-    
-    def get_support_response(self, query: str) -> str:
-        """Agent router compatibility"""
-        return self.get_support_info(query)
-    
-    def get_troubleshooting_response(self, query: str) -> str:
-        """Agent router compatibility"""
-        issue = self.get_troubleshooting(query)
-        return self.format_troubleshooting_response(issue) if issue else None
-    
-    def get_category_listing(self, query: str) -> str:
-        """Agent router compatibility"""
-        query_lower = query.lower()
-        if any(phrase in query_lower for phrase in ['show me all', 'what jars', 'what atomizers', 'list of', 'all products']):
-            return "category_listing"
-        return None
+        return self.support_info.get('order_status', '')

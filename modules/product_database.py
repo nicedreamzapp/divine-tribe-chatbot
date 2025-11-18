@@ -28,7 +28,7 @@ class ProductDatabase:
     4. Context Awareness - From conversation history
     """
     
-    def __init__(self, json_file: str = "products_organized.json"):
+    def __init__(self, json_file: str = "products_clean.json"):
         self.json_file = json_file
         self.products = []
         self.business_rules = {}
@@ -47,30 +47,46 @@ class ProductDatabase:
             print("⚠️  Running in fallback mode (keyword search only)")
     
     def load_products(self):
-        """Load products from JSON"""
+        """Load products from JSON - supports both old and new formats"""
         try:
             with open(self.json_file, 'r') as f:
                 data = json.load(f)
             
-            # Extract business rules
-            metadata = data.get('metadata', {})
-            self.business_rules = metadata.get('business_rules', {})
-            
-            # Extract all products
-            categories = data.get('categories', {})
-            
-            for category_name, category_data in categories.items():
-                if isinstance(category_data, dict) and 'products' in category_data:
-                    for product in category_data['products']:
-                        # Enrich product with metadata
-                        product['category'] = category_name
-                        product['category_display'] = category_data.get('display_name', category_name)
-                        product['priority'] = category_data.get('priority', 2)
-                        
-                        self.products.append(product)
-            
-            print(f"✅ Loaded {len(self.products)} products")
-            print(f"✅ Business rules: {len(self.business_rules)}")
+            # Check if this is the new clean format (flat list of products)
+            if 'products' in data and isinstance(data['products'], list):
+                print("📦 Loading products from CLEAN format (products_clean.json)")
+                
+                # Load products directly from list
+                self.products = data['products']
+                
+                # Extract metadata if available
+                metadata = data.get('metadata', {})
+                print(f"✅ Loaded {len(self.products)} products")
+                print(f"   Format: Clean (no variations, no HTML)")
+                
+            else:
+                # Old format with categories
+                print("📦 Loading products from OLD format (products_organized.json)")
+                
+                # Extract business rules
+                metadata = data.get('metadata', {})
+                self.business_rules = metadata.get('business_rules', {})
+                
+                # Extract all products from categories
+                categories = data.get('categories', {})
+                
+                for category_name, category_data in categories.items():
+                    if isinstance(category_data, dict) and 'products' in category_data:
+                        for product in category_data['products']:
+                            # Enrich product with metadata
+                            product['category'] = category_name
+                            product['category_display'] = category_data.get('display_name', category_name)
+                            product['priority'] = category_data.get('priority', 2)
+                            
+                            self.products.append(product)
+                
+                print(f"✅ Loaded {len(self.products)} products")
+                print(f"✅ Business rules: {len(self.business_rules)}")
             
         except Exception as e:
             print(f"❌ Error loading products: {e}")
@@ -217,7 +233,7 @@ def test_product_database():
     print("PRODUCT DATABASE TEST (Modern RAG)")
     print("="*70 + "\n")
     
-    db = ProductDatabase('products_organized.json')
+    db = ProductDatabase('products_clean.json')  # Use clean format
     
     # Print stats
     print("\nSearch System Stats:")

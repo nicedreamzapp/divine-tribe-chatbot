@@ -43,7 +43,7 @@ class ImageGenerator:
         return False
     
     def generate_for_chatbot(self, prompt):
-        """Generate image using the same workflow as simple_flux_app"""
+        """Generate image using proper FLUX workflow with separate VAE loader"""
         
         # Use unique filename for each generation
         filename_prefix = f"divtribe_{str(uuid.uuid4())[:8]}"
@@ -52,7 +52,7 @@ class ImageGenerator:
             "3": {
                 "inputs": {
                     "text": prompt,
-                    "clip": ["11", 0]
+                    "clip": ["11", 0]  # Use DualCLIPLoader
                 },
                 "class_type": "CLIPTextEncode"
             },
@@ -88,7 +88,7 @@ class ImageGenerator:
             "22": {
                 "inputs": {
                     "conditioning": ["3", 0],
-                    "model": ["30", 0]  # Use LoRA model
+                    "model": ["10", 0]
                 },
                 "class_type": "BasicGuider"
             },
@@ -105,7 +105,7 @@ class ImageGenerator:
                     "scheduler": "simple",
                     "steps": 4,
                     "denoise": 1.0,
-                    "model": ["30", 0]  # Use LoRA model
+                    "model": ["10", 0]
                 },
                 "class_type": "BasicScheduler"
             },
@@ -113,18 +113,10 @@ class ImageGenerator:
                 "inputs": {"width": 1024, "height": 1024, "batch_size": 1},
                 "class_type": "EmptySD3LatentImage"
             },
-            "30": {
-                "inputs": {
-                    "lora_name": self.lora_name,
-                    "strength_model": self.lora_strength,
-                    "model": ["10", 0]
-                },
-                "class_type": "LoraLoaderModelOnly"
-            },
             "8": {
                 "inputs": {
                     "samples": ["13", 0],
-                    "vae": ["12", 0]
+                    "vae": ["12", 0]  # Use separate VAELoader
                 },
                 "class_type": "VAEDecode"
             },

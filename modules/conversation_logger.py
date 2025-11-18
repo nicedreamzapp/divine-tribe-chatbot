@@ -22,6 +22,7 @@ class ConversationLogger:
                         products_shown: List[Dict],
                         intent: str,
                         confidence: float) -> str:
+        import fcntl  # For file locking in parallel writes
         """
         Log a single conversation exchange
         Returns: chat_id for this exchange
@@ -63,19 +64,29 @@ class ConversationLogger:
         date_str = timestamp.strftime('%Y-%m-%d')
         log_file = os.path.join(self.log_dir, f"{date_str}.json")
         
-        # Load existing logs or create new list
-        if os.path.exists(log_file):
-            with open(log_file, 'r') as f:
-                logs = json.load(f)
-        else:
-            logs = []
-        
-        # Append new log
-        logs.append(log_entry)
-        
-        # Save back to file
-        with open(log_file, 'w') as f:
-            json.dump(logs, f, indent=2)
+        # Load existing logs with file locking (thread-safe)
+        try:
+            if os.path.exists(log_file):
+                with open(log_file, 'r+') as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)  # Exclusive lock
+                    try:
+                        logs = json.load(f)
+                    except json.JSONDecodeError:
+                        logs = []  # If corrupted, start fresh
+                    logs.append(log_entry)
+                    f.seek(0)
+                    f.truncate()
+                    json.dump(logs, f, indent=2)
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Unlock
+            else:
+                logs = [log_entry]
+                with open(log_file, 'w') as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                    json.dump(logs, f, indent=2)
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        except Exception as e:
+            print(f"Warning: Failed to log conversation: {e}")
+            # Don't crash if logging fails
         
         return chat_id
     

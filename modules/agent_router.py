@@ -1,42 +1,63 @@
 #!/usr/bin/env python3
 """
-agent_router.py - Context Engineering Agent with Customer Service Intelligence
-Routes queries to: CAG Cache, RAG Search, Support, Troubleshooting, or Rejection
-
-PRIORITY ORDER (CRITICAL):
-1. Off-topic rejection
-2. Customer service (troubleshooting, returns, warranty, how-to, orders)
-3. Product cache (for product info queries)
-4. Mistral reasoning (for advice/comparison)
-5. RAG search (for accessories)
+agent_router.py - Routes queries to appropriate handlers
+All product queries go to RAG search (products_clean.json)
 """
 
 from typing import Dict, Tuple, Optional
 import re
 
+# Import enterprise components
+try:
+    from modules.query_preprocessor import QueryPreprocessor
+    from modules.intent_classifier import IntentClassifier
+    ENTERPRISE_MODE = True
+except ImportError:
+    ENTERPRISE_MODE = False
+    print("⚠️  Enterprise components not found - running in standard mode")
+
 
 class AgentRouter:
     """
-    The "brain" that decides what to do with each query.
-    NOW WITH CUSTOMER SERVICE INTELLIGENCE!
+    Routes queries intelligently:
+    1. Troubleshooting/How-To → CAG cache
+    2. Product queries → RAG search (products_clean.json)
+    3. Company info → CAG cache
+    4. General knowledge → Mistral
     """
     
-    def __init__(self, cag_cache, product_database):
-        """
-        Args:
-            cag_cache: CAGCache instance
-            product_database: ProductDatabase instance (for RAG)
-        """
+    def __init__(self, cag_cache, product_database, context_manager=None):
         self.cache = cag_cache
         self.db = product_database
+        self.context_manager = context_manager
         
-        # Off-topic rejection patterns
-        self.offtopic_patterns = [
-            r'\b(elephant|france|capital|cake|weather|bitcoin|president|python|pizza|movie|car|garden|workout|pasta|japan|guitar|photo|poem|math|stock)\b',
-            r'\b(recipe|travel|learn|tips)\b'
+        # Initialize enterprise components if available
+        if ENTERPRISE_MODE:
+            self.query_preprocessor = QueryPreprocessor()
+            self.intent_classifier = IntentClassifier(cag_cache)
+            print("✅ Agent Router initialized (ENTERPRISE MODE)")
+        else:
+            self.query_preprocessor = None
+            self.intent_classifier = None
+            print("✅ Agent Router initialized (STANDARD MODE)")
+        
+        # Competitor brands (filter these)
+        self.competitor_brands = [
+            'puffco', 'peak', 'puffco peak',
+            'storz', 'bickel', 'storz & bickel', 'storz and bickel',
+            'mighty', 'crafty', 'volcano',
+            'arizer', 'solo', 'air', 'extreme q',
+            'dynavap', 'vapcap',
+            'davinci', 'iq', 'miqro',
+            'firefly',
+            'pax', 'pax 2', 'pax 3',
+            'kandypens',
+            'boundless',
+            'healthy rips',
+            'zeus'
         ]
         
-        # Customer service patterns (NEW!)
+        # Customer service patterns
         self.troubleshooting_keywords = [
             'broken', 'not working', 'stopped working', 'won\'t work', 'doesn\'t work',
             'leaking', 'leaky', 'cracked', 'damaged', 'defective',
@@ -65,275 +86,247 @@ class AgentRouter:
             'order', 'tracking', 'shipped', 'delivery', 'when will',
             'where is my', 'hasn\'t arrived', 'not received'
         ]
-    
-    def route(self, query: str, context: Optional[Dict] = None) -> Dict:
-        """
-        Main routing logic with CUSTOMER SERVICE PRIORITY.
         
-        Returns:
-            {
-                'route': 'cache'|'rag'|'support'|'troubleshooting'|'how_to'|'warranty'|'return'|'order'|'mistral'|'reject',
-                'data': response data or None,
-                'reasoning': why this route was chosen
-            }
-        """
+        # Business-related keywords (for product queries)
+        self.product_keywords = [
+            # Main vapes
+            'v5', 'v 5', 'core', 'deluxe', 'tug', 'fogger', 'nice dreamz',
+            'lightning pen', 'ruby twist', 'gen 2', 'generation 2',
+            'cub', 'xl', 'extra large',
+            
+            # Product categories
+            'vaporizer', 'vaporizers', 'vape', 'vapes', 'atomizer', 'atomizers', 'erig', 'e-rig', 'enail', 'e-nail',
+            
+            # Materials
+            'concentrate', 'concentrates', 'wax', 'dab', 'dabs', 'oil', 'shatter',
+            'dry herb', 'flower', 'herb', 'bud',
+            
+            # Accessories
+            'jar', 'jars', 'glass', 'bubbler', 'banger', 'cup', 'carb cap',
+            'coil', 'heater', 'battery', 'mod', 'pico',
+            
+            # Hemp products
+            'hemp', 'shirt', 't-shirt', 'tshirt', 'hoodie', 'clothing', 'boxer', 'clothes', 'apparel',
+            
+            # Company
+            'divine tribe', 'ineedhemp', 'matt', 'divine crossing'
+        ]
+    
+    def route(self, query: str, context: Optional[Dict] = None, session_id: str = "default") -> Dict:
+        """Main routing logic"""
         query_lower = query.lower().strip()
         
-        # ROUTE 1: Off-topic rejection (always first)
-        if self._is_offtopic(query_lower):
+        # ENTERPRISE PREPROCESSING
+        if ENTERPRISE_MODE and self.query_preprocessor and self.intent_classifier:
+            preprocessed = self.query_preprocessor.process(query)
+            
+            if self.context_manager:
+                ctx = self.context_manager.get_retrieval_context(session_id)
+            else:
+                ctx = context or {}
+            
+            intent_result = self.intent_classifier.classify(preprocessed, ctx)
+            intent = intent_result['intent']
+            
+            if 'cached_response' in intent_result:
+                print(f"⚡ CACHE HIT: {query[:50]}")
+                return {
+                    'route': 'cache',
+                    'data': intent_result['cached_response'],
+                    'reasoning': 'CAG cache hit (enterprise mode)',
+                    'confidence': intent_result['confidence']
+                }
+            
+            if intent == 'material_shopping':
+                print(f"🎯 Material shopping detected: {intent_result.get('metadata', {}).get('material')}")
+                return {
+                    'route': 'material_shopping',
+                    'data': None,
+                    'reasoning': f"Material shopping: {intent_result.get('metadata', {}).get('material')}",
+                    'query': query,
+                    'metadata': intent_result.get('metadata', {})
+                }
+        
+        # ROUTE 1: COMPETITOR MENTIONS
+        if self._mentions_competitors(query_lower):
             return {
-                'route': 'reject',
-                'data': self._get_rejection_message(),
-                'reasoning': 'Off-topic query detected'
+                'route': 'competitor_mention',
+                'data': self._get_competitor_response(query_lower),
+                'reasoning': 'Competitor brand mentioned',
+                'query': query
             }
         
-        # ROUTE 2: CUSTOMER SERVICE CHECKS (BEFORE PRODUCTS!)
+        # ROUTE 2: CUSTOMER SERVICE
         
-        # 2A: Troubleshooting (device problems)
+        # 2A: Troubleshooting
         if self._is_troubleshooting(query_lower):
             response = self.cache.get_troubleshooting_response(query)
             return {
                 'route': 'troubleshooting',
                 'data': response,
-                'reasoning': 'User has a technical problem - troubleshooting needed',
-                'query': query  # Pass through for Mistral if needed
+                'reasoning': 'Technical problem detected',
+                'query': query
             }
         
-        # 2B: How-to questions (instructions)
+        # 2B: How-to questions
         if self._is_how_to_question(query_lower):
             response = self.cache.get_how_to_response(query)
             return {
                 'route': 'how_to',
                 'data': response,
-                'reasoning': 'User needs instructions',
-                'query': query  # Pass through for Mistral if needed
+                'reasoning': 'How-to question',
+                'query': query
             }
         
-        # 2C: Warranty claims
+        # 2C: Warranty
         if self._is_warranty_claim(query_lower):
             response = self.cache.get_warranty_response(query)
             return {
                 'route': 'warranty',
                 'data': response,
-                'reasoning': 'Warranty claim detected'
+                'reasoning': 'Warranty claim'
             }
         
-        # 2D: Returns/refunds
+        # 2D: Returns
         if self._is_return_request(query_lower):
             response = self.cache.get_return_response(query)
             return {
                 'route': 'return',
                 'data': response,
-                'reasoning': 'Return/refund request detected'
+                'reasoning': 'Return request'
             }
         
-        # 2E: Order inquiries
+        # 2E: Order status
         if self._is_order_inquiry(query_lower):
             response = self.cache.get_order_response(query)
             return {
                 'route': 'order',
                 'data': response,
-                'reasoning': 'Order status inquiry'
+                'reasoning': 'Order inquiry'
             }
         
-        # ROUTE 3: Mistral reasoning (advice/comparison questions)
-        if self._needs_mistral_reasoning(query_lower):
-            return {
-                'route': 'mistral',
-                'data': None,
-                'reasoning': 'Needs AI reasoning for advice/recommendation',
-                'query': query
-            }
+        # ROUTE 2.5: COMPANY INFO
+        company_queries = ['about divine tribe', 'what is divine tribe', 'who is divine tribe',
+                          'tell me about divine tribe', 'how about divine tribe', 'what kind of vaporizers']
+        if any(phrase in query_lower for phrase in company_queries):
+            support_response = self.cache.get_support_info(query)
+            if support_response:
+                return {
+                    'route': 'support',
+                    'data': support_response,
+                    'reasoning': 'Company info inquiry',
+                    'query': query
+                }
         
-        # ROUTE 4: Cached main products (product info)
-        product_key = self.cache.check_cache(query)
-        if product_key:
-            response = self.cache.format_product_response(product_key)
-            return {
-                'route': 'cache',
-                'data': response,
-                'reasoning': f'Matched cached product: {product_key}',
-                'product_key': product_key
-            }
+        # ROUTE 3: PRODUCT QUERIES (ALL GO TO RAG SEARCH)
+        is_product_related = self._is_product_related(query_lower)
         
-        # ROUTE 5: Cached support info
-        support = self.cache.get_support_info(query)
-        if support:
-            return {
-                'route': 'support',
-                'data': support,
-                'reasoning': 'Matched support query'
-            }
-        
-        # ROUTE 6: Cached comparisons
-        comparison = self.cache.get_comparison(query)
-        if comparison:
-            return {
-                'route': 'comparison',
-                'data': comparison,
-                'reasoning': 'Matched comparison query'
-            }
-        
-        # ROUTE 7: Smart category listings (NEW! - prevents jar/cup/glass confusion)
-        category_listing = self.cache.get_category_listing(query)
-        if category_listing:
-            return {
-                'route': 'category',
-                'data': category_listing,
-                'reasoning': 'Matched category listing (jars, glass, cups)'
-            }
-        
-        # ROUTE 8: RAG search for accessories/parts
-        if self._needs_rag_search(query_lower):
+        if is_product_related:
+            # 3A: Comparison queries
+            comparison = self.cache.get_comparison(query_lower)
+            if comparison:
+                return {
+                    'route': 'comparison',
+                    'data': comparison,
+                    'reasoning': 'Product comparison'
+                }
+            
+            # 3B: ALL product queries go to RAG search
             return {
                 'route': 'rag',
                 'data': None,
-                'reasoning': 'Needs RAG search for accessories/parts',
+                'reasoning': 'Product query - search products_clean.json',
                 'query': query
             }
         
-        # ROUTE 8: General/conversational
-        if self._is_general_question(query_lower):
-            return {
-                'route': 'general',
-                'data': None,
-                'reasoning': 'General conversational query'
-            }
-        
-        # Default: Try RAG search
+        # ROUTE 4: GENERAL KNOWLEDGE (Mistral)
         return {
-            'route': 'rag',
+            'route': 'general_mistral',
             'data': None,
-            'reasoning': 'Default to RAG search',
-            'query': query
+            'reasoning': 'General knowledge question',
+            'query': query,
+            'is_business_related': is_product_related
         }
     
+    def _is_product_related(self, query: str) -> bool:
+        """Check if query is about YOUR products/business"""
+        return any(keyword in query for keyword in self.product_keywords)
+    
+    def _mentions_competitors(self, query: str) -> bool:
+        """Check if query mentions competitor brands"""
+        return any(brand in query for brand in self.competitor_brands)
+    
     def _is_troubleshooting(self, query: str) -> bool:
-        """
-        Detect if user has a technical problem.
-        Examples: "my v5 won't work", "leaking", "not heating"
-        """
+        """Check if user has a technical problem"""
         return any(keyword in query for keyword in self.troubleshooting_keywords)
     
     def _is_how_to_question(self, query: str) -> bool:
-        """
-        Detect if user needs instructions.
-        Examples: "how do I clean", "how to use", "settings"
-        """
+        """Check if user needs instructions"""
         return any(keyword in query for keyword in self.how_to_keywords)
     
     def _is_warranty_claim(self, query: str) -> bool:
-        """
-        Detect warranty claims.
-        Examples: "warranty", "defective", "broken on arrival"
-        """
+        """Check if user is making warranty claim"""
         return any(keyword in query for keyword in self.warranty_keywords)
     
     def _is_return_request(self, query: str) -> bool:
-        """
-        Detect return/refund requests.
-        Examples: "how do I return", "refund", "send it back"
-        """
+        """Check if user wants to return something"""
         return any(keyword in query for keyword in self.return_keywords)
     
     def _is_order_inquiry(self, query: str) -> bool:
-        """
-        Detect order status questions.
-        Examples: "where is my order", "tracking", "hasn't arrived"
-        """
+        """Check if user is asking about their order"""
         return any(keyword in query for keyword in self.order_keywords)
     
-    def _needs_mistral_reasoning(self, query: str) -> bool:
-        """
-        Detect if query needs AI reasoning/advice.
-        Examples: "which should I buy", "what's better", "recommend"
-        """
-        reasoning_indicators = [
-            'which', 'what should', 'recommend', 'suggest', 'advice',
-            'better', 'best for', 'which one', 'help me choose',
-            'good for', 'right for', 'vs', 'versus', 'compare',
-            'difference between', 'worth it', 'is it good'
-        ]
-        
-        return any(indicator in query for indicator in reasoning_indicators)
-    
-    def _is_offtopic(self, query: str) -> bool:
-        """Check if query is off-topic"""
-        for pattern in self.offtopic_patterns:
-            if re.search(pattern, query, re.IGNORECASE):
-                return True
-        return False
-    
-    def _get_rejection_message(self) -> str:
-        """Polite rejection for off-topic queries"""
-        return """I'm the Divine Tribe product assistant - I can only help with:
+    def _get_competitor_response(self, query: str) -> str:
+        """Neutral response when competitors mentioned"""
+        return """I focus on Divine Tribe products and can't provide detailed comparisons with other brands. 
 
-🌿 Divine Tribe vaporizer products
-💬 Product recommendations & comparisons  
-🔧 Technical support & troubleshooting
-📦 Orders, shipping, and returns
+However, I'm happy to explain what makes Divine Tribe unique:
+- Rebuildable technology (save money long-term)
+- Made in USA
+- Direct pricing (no middleman markup)
+- Active community support
 
-For other topics, I'd recommend searching Google or asking a general AI assistant!"""
+What would you like to know about Divine Tribe specifically?
+
+📧 Email: matt@ineedhemp.com
+🌐 Shop: https://ineedhemp.com"""
     
-    def _needs_rag_search(self, query: str) -> bool:
-        """Check if query needs RAG search (accessories, parts, etc.)"""
-        accessory_keywords = [
-            'jar', 'insert', 'sic', 'titanium cup', 'ceramic cup',
-            'quartz', 'glass', 'bubbler', 'carb cap', 'o-ring', 'screen',
-            'spare', 'bottomless banger', 'hydratube', '510 cable', 'mod',
-            'pico', 'arctic fox', 'battery', 'terp slurper', 'enail', 'coil'
-        ]
+    def execute_rag_search(self, query: str, max_results: int = 5, session_id: str = "default") -> str:
+        """Execute RAG search and format response - prioritize main kits, never show replacement parts"""
+        # Get context if available
+        context = None
+        if self.context_manager:
+            context = self.context_manager.get_retrieval_context(session_id)
         
-        # Only search for accessories if NOT asking about problems
-        if self._is_troubleshooting(query) or self._is_how_to_question(query):
-            return False
-        
-        return any(keyword in query for keyword in accessory_keywords)
-    
-    def _is_general_question(self, query: str) -> bool:
-        """Check if it's a general conversational query"""
-        general_patterns = [
-            'hello', 'hi ', 'hey', 'thanks', 'thank you',
-            'how are you', 'what can you do', 'help me',
-            'what is divine tribe', 'who are you'
-        ]
-        
-        return any(pattern in query for pattern in general_patterns)
-    
-    def execute_rag_search(self, query: str, max_results: int = 5) -> str:
-        """
-        Execute RAG search and format response beautifully.
-        Bold product names with links, clean spacing, NO TRUNCATION.
-        HTML cleaning to remove junk from descriptions.
-        """
-        results = self.db.search(query, max_results=max_results)
+        # Execute search
+        results = self.db.search(query, max_results=max_results, context=context)
         
         if not results:
             return f"I couldn't find products matching '{query}'.\n\n🌐 Browse all products: https://ineedhemp.com\n📧 Need help? Email matt@ineedhemp.com"
         
-        # Format results beautifully - NO CHARACTER LIMITS
-        response = f"🔍 **Found {len(results)} product(s) for '{query}':**\n\n"
+        # FILTER OUT REPLACEMENT PARTS
+        filtered_results = [p for p in results if p.get('category', '').lower() != 'replacement_parts']
         
-        for i, product in enumerate(results, 1):
+        if not filtered_results:
+            filtered_results = results  # Fallback if all were replacement parts
+        
+        # Format results
+        response = f"🔍 **Found {len(filtered_results)} product(s) for '{query}':**\n\n"
+        
+        for i, product in enumerate(filtered_results, 1):
             name = product.get('name', 'Unknown Product')
-            price = product.get('price', 'Check website')
             url = product.get('url', 'https://ineedhemp.com')
             desc = product.get('description', '')
             
-            # Clean description - remove HTML entities and extra whitespace
-            desc = re.sub(r'\\n', ' ', desc)  # Remove \n
-            desc = re.sub(r'\s+', ' ', desc)  # Collapse multiple spaces
-            desc = re.sub(r'<[^>]+>', '', desc)  # Remove HTML tags
+            # Clean description
+            desc = re.sub(r'\\n', ' ', desc)
+            desc = re.sub(r'\s+', ' ', desc)
+            desc = re.sub(r'<[^>]+>', '', desc)
             desc = desc.strip()
             
-            # Bold linked product name - FULL NAME
             response += f"{i}. **[{name}]({url})**\n"
             
-            if price and price != 'Check website':
-                response += f"   💰 Price: {price}\n"
-            
             if desc and len(desc) > 20:
-                # Show first 150 chars of CLEANED description
                 desc_preview = desc[:150] + "..." if len(desc) > 150 else desc
                 response += f"   📝 {desc_preview}\n"
             
@@ -342,81 +335,30 @@ For other topics, I'd recommend searching Google or asking a general AI assistan
         response += f"📧 Questions? Email matt@ineedhemp.com\n"
         response += f"🌐 View all: https://ineedhemp.com"
         
+        # Log to context if available
+        if self.context_manager:
+            self.context_manager.add_exchange(
+                session_id=session_id,
+                user_query=query,
+                bot_response=response,
+                products_shown=filtered_results,
+                intent='rag_search'
+            )
+        
         return response
     
     def get_stats(self) -> Dict:
         """Get routing statistics"""
-        return {
-            'cached_products': len(self.cache.cached_products),
+        stats = {
             'total_products_in_db': len(self.db.products),
             'support_info_items': len(self.cache.support_info),
-            'rejection_patterns': len(self.offtopic_patterns),
-            'customer_service_enabled': True
+            'mode': 'RAG_ONLY_FOR_PRODUCTS',
+            'competitor_brands_blocked': len(self.competitor_brands),
+            'customer_service_enabled': True,
+            'enterprise_mode': ENTERPRISE_MODE
         }
-
-
-# Convenience function
-def route_query(query: str, cag_cache, product_database) -> Dict:
-    """Quick routing function"""
-    router = AgentRouter(cag_cache, product_database)
-    return router.route(query)
-
-
-# Testing
-def test_agent_router():
-    """Test the agent router with customer service scenarios"""
-    print("\n" + "="*70)
-    print("AGENT ROUTER TEST - WITH CUSTOMER SERVICE")
-    print("="*70 + "\n")
-    
-    # Import dependencies
-    import sys
-    sys.path.insert(0, '/mnt/user-data/uploads')
-    
-    from cag_cache import CAGCache
-    from product_database import ProductDatabase
-    
-    cache = CAGCache()
-    db = ProductDatabase('/mnt/user-data/uploads/products_organized.json')
-    router = AgentRouter(cache, db)
-    
-    # Test queries including customer service
-    test_queries = [
-        ("my v5 cup is cracked", "Should route to TROUBLESHOOTING/WARRANTY"),
-        ("how do I clean my core deluxe", "Should route to HOW_TO"),
-        ("my order hasn't arrived", "Should route to ORDER"),
-        ("what should I buy for flavor", "Should route to MISTRAL"),
-        ("what is the v5 xl", "Should use CACHE"),
-        ("uv jars", "Should use RAG"),
-        ("warranty info", "Should use WARRANTY"),
-        ("how to return", "Should use RETURN"),
-        ("v5 xl vs core", "Should use COMPARISON")
-    ]
-    
-    for query, expected in test_queries:
-        print(f"\n{'='*70}")
-        print(f"Query: '{query}'")
-        print(f"Expected: {expected}")
-        print(f"{'='*70}")
         
-        result = router.route(query)
+        if self.context_manager:
+            stats['active_sessions'] = len(self.context_manager.sessions)
         
-        print(f"✅ Route: {result['route'].upper()}")
-        print(f"💭 Reasoning: {result['reasoning']}")
-        
-        if result['data']:
-            print(f"\n📄 Response Preview:")
-            preview = result['data'][:200] + "..." if len(result['data']) > 200 else result['data']
-            print(preview)
-    
-    # Print stats
-    print(f"\n{'='*70}")
-    print("ROUTER STATS")
-    print(f"{'='*70}")
-    stats = router.get_stats()
-    for key, value in stats.items():
-        print(f"  {key}: {value}")
-
-
-if __name__ == "__main__":
-    test_agent_router()
+        return stats
