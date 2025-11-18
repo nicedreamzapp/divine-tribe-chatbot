@@ -13,7 +13,7 @@ Intelligent product recommendation chatbot with semantic search, instant cached 
 - **Conversational Memory** - Remembers context across conversation
 - **RLHF Ready** - Logs all conversations for continuous improvement
 
-**Live Demo:** https://chat.marijuanaunion.com
+**Live Chat:** Available at [ineedhemp.com](https://ineedhemp.com)
 
 ## Recent Updates (Nov 2025)
 
@@ -377,7 +377,6 @@ See `.gitignore` for complete list.
 ## Contact
 
 - **Website:** [ineedhemp.com](https://ineedhemp.com)
-- **Live Chat:** [chat.marijuanaunion.com](https://chat.marijuanaunion.com)
 - **Email:** matt@ineedhemp.com
 
 ## License
@@ -390,4 +389,4 @@ Proprietary - Divine Tribe / Nice Dreamz LLC
 Powered by Mistral AI & ComfyUI FLUX  
 Humboldt County, California 🌲
 
-*Last Updated: November 2025* 
+*Last Updated: November 2025*
