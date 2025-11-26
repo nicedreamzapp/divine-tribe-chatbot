@@ -51,14 +51,140 @@ Both are excellent for concentrates!"""
             },
             'core_vs_fogger': {
                 'question': 'Core vs Nice Dreamz Fogger?',
-                'answer': """**Core 2.0 Deluxe:** Easy-to-use eRig built like a tank. Simple, reliable, beginner-friendly.
+                'answer': """**Core XL Deluxe:** Our newest eRig - easy-to-use, built like a tank. Simple, reliable, beginner-friendly. All-in-one design with 6 heat settings.
 
 **Nice Dreamz Fogger:** Forced-air eRig - pushes vapor to you. Just breathe in, the device does the work.
 
 **Which to choose:**
-- Core: Want simplicity and durability
-- Fogger: Want effortless hits with forced air"""
+- Core XL Deluxe: Want simplicity and durability (our newest!)
+- Fogger: Want effortless hits with forced air
+
+Note: Core 2.0/2.1 are older models. The Core XL Deluxe is our current flagship."""
             }
+            # NOTE: Core 2.1/2.0 upsell now in quick_answers section
+        }
+
+        # QUICK ANSWERS - Discounts, shipping, terminology
+        self.quick_answers = {
+            'coupon': {
+                'keywords': ['coupon', 'coupon code', 'discount', 'discount code', 'promo', 'promo code', 'promocode'],
+                'answer': """💰 **Divine Tribe Discount Code:**
+
+Use code **thankyou10** for 10% off your order!
+
+🛒 Shop: https://ineedhemp.com
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'black_friday': {
+                'keywords': ['black friday', 'cyber monday', 'sale', 'holiday sale', 'thanksgiving sale'],
+                'answer': """🛍️ **Divine Tribe Pricing:**
+
+We try to keep our prices as low as possible year-round, so we don't typically do big Black Friday markdowns.
+
+However, you can always use code **thankyou10** for 10% off!
+
+🛒 Shop: https://ineedhemp.com
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'international_shipping': {
+                'keywords': ['international', 'ship to', 'vietnam', 'canada', 'uk', 'europe', 'australia', 'overseas', 'outside us', 'outside usa', 'another country', 'other country'],
+                'answer': """🌍 **International Shipping:**
+
+Yes! We ship internationally to most countries, including:
+- Canada
+- UK & Europe
+- Australia
+- Vietnam
+- And many more!
+
+📦 **Shipping details:**
+- Discreet packaging (plain brown box, no logos)
+- Tracking provided
+- Delivery time varies by country
+
+🛒 Place your order at https://ineedhemp.com
+📧 Shipping questions? Email matt@ineedhemp.com"""
+            },
+            'spacer': {
+                'keywords': ['spacer', 'what is a spacer', 'what is spacer', 'spacers'],
+                'answer': """🔧 **What is a Spacer?**
+
+A spacer is a ceramic piece that keeps the heater from touching the metal housing, preventing premature heat transfer.
+
+This applies to Divine Tribe heater devices and coils - it's a key component that helps maintain proper heat distribution.
+
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'drip_tips': {
+                'keywords': ['drip tip', 'drip tips', 'mouthpiece', 'tip options', 'tip difference'],
+                'answer': """💨 **Divine Tribe Drip Tips:**
+
+We offer three types of drip tips for our vaporizers:
+
+1. **Silicone** ⭐ Most Popular
+   - Recommended by our shop and customers
+   - Comfortable, heat-resistant, durable
+
+2. **Glass**
+   - Pure flavor, smooth feel
+   - Easy to clean
+
+3. **Metal**
+   - Standard option
+   - Durable, classic look
+
+Based on customer feedback, **silicone is the most popular choice!**
+
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'microcontroller': {
+                'keywords': ['microcontroller', 'micro controller', 'temperature controller', 'temp controller', 'enail controller', 'e-nail controller'],
+                'answer': """🎛️ **Divine Tribe Temperature Controllers:**
+
+Our microcontroller/temperature controller works with all the coils we sell!
+
+**Available options:**
+- **20mm eNail coil with controller** - Standalone eNail setup
+- **Ruby Twist Kit** - Complete ball vape kit with controller
+  👉 https://ineedhemp.com/product/ruby-twist-kit/
+
+The controller provides precise temperature control for the best vaping experience.
+
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'coil_compatibility': {
+                'keywords': ['nice dreamz atomizer', 'fogger atomizer', 'core atomizer', 'nice dreamz on core', 'atomizer work on', 'atomizer fit', 'coil compatible', 'coils compatible', 'work on the core', 'fit on the core', 'same coils', 'interchangeable', 'coil work'],
+                'answer': """🔄 **Coil Compatibility:**
+
+Yes! **All Core bases and Nice Dreamz Fogger share the same coil system** - they're fully interchangeable!
+
+✅ Core 2.0
+✅ Core 2.1
+✅ Core XL Deluxe
+✅ Nice Dreamz Fogger
+
+All use the same modular coils. You can mix and match any coil on any of these bases!
+
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'core_21_upsell': {
+                'keywords': ['core 2.1', 'core 2.0', 'should i get the core 2', 'buy the core 2', 'get the 2.1', 'get the 2.0', 'buying core 2', 'purchase core 2'],
+                'answer': """**Looking at the Core 2.0/2.1?**
+
+We recommend the **Core XL Deluxe** instead - it's our newest model!
+
+**Why Core XL Deluxe is better:**
+- Has the **XL coil option** (bigger cup, more vapor)
+- Same easy-to-use design you'd expect
+- Our current flagship product
+
+**Good news:** All Core models (2.0, 2.1, XL Deluxe) and Nice Dreamz Fogger share the same coil system - fully interchangeable!
+
+👉 Go with the **Core XL Deluxe** for the best experience.
+
+📧 Questions? Email matt@ineedhemp.com"""
+            }
+            # NOTE: Hemp t-shirt comparisons go through RAG for accuracy
         }
 
         # REDDIT-PROVEN TROUBLESHOOTING SOLUTIONS
@@ -417,11 +543,20 @@ Yes! As long as it has temp control and 510 threading, it'll work with V5.
         if ('core' in query_lower and 'fogger' in query_lower) or ('core' in query_lower and 'nice dreamz' in query_lower):
             comp = self.comparisons.get('core_vs_fogger')
             return comp['answer'] if isinstance(comp, dict) else comp
+
+        # NOTE: Core 2.1/2.0 questions now handled by quick_answers (core_21_upsell)
         
-        # Generic comparison request
-        if 'vs' in query_lower or 'versus' in query_lower or 'compared' in query_lower or 'difference between' in query_lower:
-            return "I can compare products for you! Which ones are you looking at?"
-        
+        # Generic comparison request - ONLY if no specific products mentioned
+        # Don't return generic message if user mentioned specific products
+        product_mentions = ['shirt', 'tshirt', 't-shirt', 'hoodie', 'hemp', 'digicam', 'jar', 'v5', 'core', 'atomizer']
+        has_product_mention = any(p in query_lower for p in product_mentions)
+
+        if ('vs' in query_lower or 'versus' in query_lower or 'compared' in query_lower or 'difference between' in query_lower or 'difference from' in query_lower):
+            if not has_product_mention:
+                return "I can compare products for you! Which ones are you looking at?"
+            # If products mentioned, return None so RAG handles it
+            return None
+
         return None
     
     def get_category_listing(self, query: str) -> str:
@@ -499,3 +634,14 @@ Yes! As long as it has temp control and 510 threading, it'll work with V5.
     def get_order_response(self, query: str) -> str:
         """Agent router compatibility - order info"""
         return self.support_info.get('order_status', '')
+
+    def get_quick_answer(self, query: str) -> str:
+        """Check quick_answers for instant responses (coupons, shipping, terminology)"""
+        query_lower = query.lower()
+
+        for answer_key, answer_data in self.quick_answers.items():
+            keywords = answer_data.get('keywords', [])
+            if any(keyword in query_lower for keyword in keywords):
+                return answer_data['answer']
+
+        return None

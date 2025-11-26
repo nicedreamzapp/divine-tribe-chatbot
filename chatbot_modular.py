@@ -109,22 +109,37 @@ def generate_conversational_product_response(
 ) -> str:
     """
     Generate conversational response with CLEANED product descriptions
-    No "hash-ready" mentions
+    STRICT: Only use facts from RAG data, no hallucinating
     """
     if not products:
         return "I couldn't find products for that. What are you looking for?\n\n📧 matt@ineedhemp.com"
-    
-    # Build product context with CLEANED descriptions
+
+    # Build product context with FULL descriptions for accuracy
     product_details = []
     for p in products[:5]:
         name = p.get('name', 'Unknown')
         url = p.get('url', 'https://ineedhemp.com')
-        desc = clean_product_description(p)  # CLEANED - no "hash-ready"
-        
-        product_details.append(f"Product: {name}\nURL: {url}\nDescription: {desc}")
-    
-    product_context = "\n\n".join(product_details)
-    
+        desc = p.get('description', '')
+
+        # Clean HTML but keep all product facts
+        desc = re.sub(r'<[^>]+>', ' ', desc)
+        desc = re.sub(r'@keyframes[^}]+\}[^}]*\}', '', desc)  # Remove CSS
+        desc = re.sub(r'\.[a-zA-Z-]+\s*\{[^}]*\}', '', desc)  # Remove CSS classes
+        desc = re.sub(r'document\.addEventListener[^;]+;', '', desc)  # Remove JS
+        desc = re.sub(r'\\n', ' ', desc)
+        desc = re.sub(r'\s+', ' ', desc).strip()
+
+        # Extract key specs (GSM, materials, sizes)
+        specs = []
+        import re as regex
+        gsm_match = regex.search(r'(\d+)\s*GSM', desc, regex.IGNORECASE)
+        if gsm_match:
+            specs.append(f"Weight: {gsm_match.group(1)} GSM")
+
+        product_details.append(f"PRODUCT: {name}\nURL: {url}\nSPECS: {', '.join(specs) if specs else 'See description'}\nDESCRIPTION: {desc[:500]}")
+
+    product_context = "\n\n---\n\n".join(product_details)
+
     # Get conversation history
     history = memory.get_history(session_id, max_turns=2)
     history_text = ""
@@ -132,49 +147,34 @@ def generate_conversational_product_response(
         history_text = "\n\nRecent conversation:\n"
         for ex in history:
             history_text += f"User: {ex['user']}\n"
-    
-    # CLEAN PROMPT - Clear terminology with ALL product categories
-    system_prompt = f"""You are Divine Tribe's helpful product advisor.
 
-**PRODUCT CATEGORIES:**
+    # STRICT PROMPT - Only use RAG data, no hallucinating
+    system_prompt = f"""You are Divine Tribe's product advisor. You MUST follow these rules strictly:
 
-VAPORIZERS - For Concentrates (wax, rosin, shatter, resin, live resin, distillate):
-- Core XL Deluxe - Easiest for beginners (all-in-one, just charge and go)
-- XL V5 - Best flavor, needs separate mod (advanced)
-- V5 - Standard size, needs separate mod
+**ABSOLUTE RULES - NEVER BREAK THESE:**
 
-VAPORIZERS - For Flower (dry herb, bud):
-- Ruby Twist - Desktop ball vape
-- Gen 2 DC - Portable
+1. **ONLY STATE FACTS FROM THE PRODUCT DATA BELOW** - Do NOT make up specs, weights, features, or comparisons
+2. If a spec (like GSM, weight, size) is in the product description, quote it EXACTLY
+3. If you don't see a specific fact in the data, say "check the product page for details"
+4. **NEVER GUESS OR INFER** - If Digicam says 280 GSM and Thick says 260 GSM, Digicam is HEAVIER (higher number = heavier)
+5. For comparisons: List the EXACT specs from each product side by side
+6. Format links as: **[Product Name](url)**
+7. Use terminology: "concentrates" and "flower" (not "hash-ready")
 
-HEMP CLOTHING - We sell sustainable hemp apparel:
-- Hemp T-Shirts (55% hemp, 45% organic cotton)
-- Hemp Hoodies (55% hemp, 45% organic cotton)
-- Hemp Fleece Pants
-- Hemp Cargo Pants
-- Hemp Boxers/Shorts (hemp and silk blend)
-- Hemp Washcloths
+**PRODUCT KNOWLEDGE:**
+- Vaporizers for concentrates: Core XL Deluxe (beginner), V5/XL V5 (advanced)
+- Vaporizers for flower: Ruby Twist, Gen 2 DC
+- Hemp clothing: T-shirts, hoodies, pants, boxers
+- Storage: UV glass jars
 
-STORAGE - Glass Jars:
-- UV Glass Jars (various sizes: 5ml, 50ml, 100ml, 500ml, 1000ml)
-- Clear Glass Jars
+**RETRIEVED PRODUCT DATA (USE ONLY THIS):**
 
-**CRITICAL RULES:**
-1. Our terminology: "concentrates" and "flower" (not "hash-ready")
-2. Ruby Twist and Gen 2 DC are for flower ONLY
-3. Core and V5 are for concentrates ONLY
-4. When asked "what is the v5", mention XL V5 first (it's the upgraded version)
-5. Use product descriptions below - don't make up features
-6. Format product names: **[Product Name](url)**
-7. Be friendly and conversational
-8. YES, we sell hemp clothing! Show the products from the list below.
-9. YES, we sell glass jars! Show the products from the list below.
-
-**AVAILABLE PRODUCTS:**
 {product_context}
 {history_text}
 
-User's question: {query}"""
+User's question: {query}
+
+Remember: ONLY use facts from the product data above. Do not invent features or specs."""
 
     try:
         response = ollama.chat(
@@ -204,7 +204,7 @@ def generate_general_knowledge_response(
     is_business_related: bool = False
 ) -> str:
     """Generate response for general knowledge questions"""
-    
+
     history = memory.get_history(session_id, max_turns=3)
     history_context = ""
     if history:
@@ -212,31 +212,33 @@ def generate_general_knowledge_response(
         for ex in history:
             history_context += f"User: {ex['user']}\n"
             history_context += f"You: {ex['bot'][:100]}...\n"
-    
-    if is_business_related:
-        system_prompt = f"""You are a knowledgeable assistant for Divine Tribe, a cannabis vaporizer company.
 
-ABOUT DIVINE TRIBE:
+    # ALWAYS identify as Divine Tribe assistant - NEVER have an identity crisis
+    system_prompt = f"""You are Divine Tribe's helpful assistant chatbot on https://ineedhemp.com
+
+**CRITICAL IDENTITY - NEVER FORGET:**
+- You ARE Divine Tribe's chatbot
+- You DO sell products at https://ineedhemp.com
+- Divine Tribe is located in Humboldt County, California
+- Owner: Matt Macosko
+- Contact: matt@ineedhemp.com
+
+**ABOUT DIVINE TRIBE:**
 - Founded by Matt Macosko
 - Based in Humboldt County, California
-- Specializes in concentrate & dry herb vaporizers
-- Products: Core eRig, V5/V5 XL (concentrates), Ruby Twist, Gen 2 DC (flower)
+- Specializes in: Cannabis vaporizers (concentrates & dry herb), hemp clothing, glass storage jars
+- Products: Core eRig, V5/V5 XL (concentrates), Ruby Twist, Gen 2 DC (flower), hemp apparel, UV glass jars
+- Ships internationally (discreet packaging)
+- Discount code: thankyou10 for 10% off
 - Known for great customer service and eco-friendly practices
 
-RULES:
-1. Answer their question fully and accurately
-2. Only mention Divine Tribe if naturally relevant
-3. NEVER mention competitor brands - describe types generically
-4. Keep it conversational
-
-{history_context}
-
-User's question: {query}"""
-    
-    else:
-        system_prompt = f"""You are a friendly AI assistant.
-
-The user asked a general question. Answer helpfully and accurately.
+**RULES:**
+1. Answer their question helpfully and accurately
+2. If the question relates to products/shopping/shipping, remind them about ineedhemp.com
+3. NEVER say "I don't sell products" - you ARE the Divine Tribe store chatbot!
+4. NEVER mention competitor brands
+5. For creative requests (stories, jokes, raps), feel free to be fun and engaging
+6. Keep responses conversational
 
 {history_context}
 
@@ -252,10 +254,11 @@ User's question: {query}"""
         )
         
         bot_response = response['message']['content'].strip()
-        
-        if is_business_related:
+
+        # Always add contact info since we're always Divine Tribe
+        if "matt@ineedhemp.com" not in bot_response.lower():
             bot_response += "\n\n📧 Questions? Email matt@ineedhemp.com"
-        
+
         return bot_response
         
     except Exception as e:
@@ -303,7 +306,7 @@ def chat():
             print(f"🎯 Route: {route} - {routing_result['reasoning']}")
             
             # Execute based on route
-            if route in ['cache', 'troubleshooting', 'how_to', 'warranty', 'return', 'order', 'support', 'comparison', 'competitor_mention']:
+            if route in ['cache', 'troubleshooting', 'how_to', 'warranty', 'return', 'order', 'support', 'comparison', 'competitor_mention', 'quick_answer', 'image_request']:
                 bot_response = routing_result['data']
             
             elif route == 'rag' or route == 'material_shopping':

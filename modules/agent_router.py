@@ -114,7 +114,27 @@ class AgentRouter:
     def route(self, query: str, context: Optional[Dict] = None, session_id: str = "default") -> Dict:
         """Main routing logic - FIXED for creative queries"""
         query_lower = query.lower().strip()
-        
+
+        # ROUTE 0: CHECK FOR IMAGE GENERATION REQUESTS (before anything else)
+        if self._is_image_request(query_lower):
+            return {
+                'route': 'image_request',
+                'data': "It looks like you want to generate an image! Use the image generator feature to create custom images. What would you like me to create?",
+                'reasoning': 'Image generation request detected',
+                'query': query
+            }
+
+        # ROUTE 0.5: QUICK ANSWERS (coupons, shipping, terminology)
+        quick_answer = self.cache.get_quick_answer(query)
+        if quick_answer:
+            print(f"⚡ QUICK ANSWER: {query[:50]}")
+            return {
+                'route': 'quick_answer',
+                'data': quick_answer,
+                'reasoning': 'Quick answer cache hit',
+                'query': query
+            }
+
         # ENTERPRISE PREPROCESSING
         if ENTERPRISE_MODE and self.query_preprocessor and self.intent_classifier:
             preprocessed = self.query_preprocessor.process(query)
@@ -292,6 +312,42 @@ class AgentRouter:
         """Check if user is asking about their order"""
         return any(keyword in query for keyword in self.order_keywords)
     
+    def _is_image_request(self, query: str) -> bool:
+        """
+        Detect image generation requests
+        Looks for descriptive phrases about appearance, characters, scenes
+        """
+        # Direct image request indicators
+        image_keywords = [
+            'generate image', 'create image', 'make image', 'draw', 'picture of',
+            'image of', 'generate a', 'create a picture', 'make a picture'
+        ]
+        if any(keyword in query for keyword in image_keywords):
+            return True
+
+        # Descriptive patterns that suggest image generation (appearance descriptions)
+        appearance_patterns = [
+            # Hair descriptions
+            'blonde hair', 'brown hair', 'red hair', 'black hair', 'hair color',
+            # Age descriptions
+            'years old', 'year old',
+            # Clothing descriptions in detail
+            'wearing a', 'dressed in', 'yellow shorts', 'black top', 'blue shirt',
+            # Character descriptions
+            'boy with', 'girl with', 'man with', 'woman with', 'person with',
+            # Action + appearance combos
+            'running and', 'waving', 'standing', 'sitting'
+        ]
+
+        # Count how many appearance patterns match
+        matches = sum(1 for pattern in appearance_patterns if pattern in query)
+
+        # If multiple appearance descriptors, likely image request
+        if matches >= 2:
+            return True
+
+        return False
+
     def _get_competitor_response(self, query: str) -> str:
         """Neutral response when competitors mentioned"""
         return """I focus on Divine Tribe products and can't provide detailed comparisons with other brands. 
