@@ -1,403 +1,481 @@
-# Divine Tribe AI
+<p align="center">
+  <img src="https://img.shields.io/badge/Divine_Tribe-AI_Assistant-purple?style=for-the-badge&logo=robot&logoColor=white" alt="Divine Tribe"/>
+  <img src="https://img.shields.io/badge/Powered_by-Claude_AI-blue?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude"/>
+  <img src="https://img.shields.io/badge/Images-FLUX_AI-orange?style=for-the-badge&logo=image&logoColor=white" alt="FLUX"/>
+</p>
 
-> **Customer support that learns. Email + Chat powered by shared intelligence.**
+<h1 align="center">
+  🌿 Divine Tribe AI Assistant 🌿
+</h1>
 
-[![Claude](https://img.shields.io/badge/AI-Claude%203.5-blueviolet)]()
-[![RAG](https://img.shields.io/badge/RAG-Hybrid%205--Signal-green)]()
-[![CAG](https://img.shields.io/badge/CAG-Cached%20Answers-orange)]()
-[![FLUX](https://img.shields.io/badge/Images-FLUX%20Local-red)]()
+<p align="center">
+  <i>Your friendly neighborhood chatbot for vaporizers, hemp gear, and AI-generated art!</i>
+</p>
 
----
-
-## The Journey
-
-```
-v1  Mistral 7B Local    Fast but context-limited, couldn't hold conversations
-         |
-         v
-v2  Claude API          Smarter reasoning, 200k token context, better understanding
-         |
-         v
-v3  Hybrid RAG/CAG      Instant cached answers + semantic product search
-         |
-         v
-v4  Dual System         Email + Chat sharing one brain  <-- YOU ARE HERE
-```
-
-### Why We Switched from Mistral
-
-Started with **Mistral 7B** running locally - fast responses, no API costs. But limitations became clear:
-
-- **4k token context** - couldn't remember conversation history
-- **Struggled with nuance** - missed product recommendations
-- **No chain-of-thought** - gave wrong answers confidently
-- **Hallucinated products** - made up features that didn't exist
-
-Moved to **Claude 3.5 Haiku** - the sweet spot of speed and intelligence:
-
-- **200k token context** - remembers entire conversation threads
-- **Better reasoning** - understands "I want something for concentrates under $150"
-- **Honest uncertainty** - says "I'm not sure" instead of making things up
-- **Follows instructions** - respects our tone, policies, and routing rules
+<p align="center">
+  <a href="https://ineedhemp.com">🌐 Website</a> •
+  <a href="https://discord.com/invite/f3qwvp56be">💬 Discord</a> •
+  <a href="https://www.reddit.com/r/DivineTribeVaporizers/">📱 Reddit</a> •
+  <a href="https://www.youtube.com/@divinetribe1">🎬 YouTube</a>
+</p>
 
 ---
 
-## Architecture
+## 🎯 What Is This?
+
+A **multi-platform AI system** that handles customer support, product questions, order lookups, and generates custom AI artwork!
 
 ```
-         +------------------+     +------------------+
-         |   EMAIL INBOX    |     |  CHAT WIDGET     |
-         |   Gmail API      |     |  Web / Telegram  |
-         +--------+---------+     +--------+---------+
-                  |                        |
-                  +----------+-------------+
-                             |
-                             v
-                  +----------+-------------+
-                  |     AGENT ROUTER       |
-                  |  Intent Classification |
-                  +----------+-------------+
-                             |
-         +-------------------+-------------------+
-         |                   |                   |
-         v                   v                   v
-  +------+------+    +-------+-------+   +------+------+
-  |  CAG CACHE  |    |  RAG SEARCH   |   | IMAGE GEN   |
-  | Pre-cached  |    | 5-Signal      |   | FLUX Local  |
-  | Answers     |    | Hybrid        |   | Unfiltered  |
-  +------+------+    +-------+-------+   +------+------+
-         |                   |                   |
-         +-------------------+-------------------+
-                             |
-                             v
-                  +----------+-------------+
-                  |      CLAUDE 3.5        |
-                  |   Response Generation  |
-                  +----------+-------------+
-                             |
-                             v
-                  +----------+-------------+
-                  |    LEARN & IMPROVE     |
-                  |  Approved = Training   |
-                  +------------------------+
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                     │
+│   🌐 WEBSITE ──────┐                                               │
+│                    │                                               │
+│   💬 DISCORD ──────┼──▶  🧠 AI BRAIN  ──▶  💬 Smart Responses      │
+│                    │     (Claude +                                 │
+│   📧 EMAIL ────────┘      RAG/CAG)     ──▶  🎨 AI Artwork          │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## The Intelligence Stack
+## ✨ Features at a Glance
 
-### 1. CAG Cache (Cached Augmented Generation)
+| Feature | 🌐 Web | 💬 Discord | 📧 Email | Description |
+|:--------|:------:|:----------:|:--------:|:------------|
+| 🛒 **Product Search** | ✅ | ✅ | ✅ | Find vaporizers, clothing, accessories |
+| 📦 **Order Lookup** | ✅ | ✅ | ✅ | Check status with secure verification |
+| 🎨 **AI Images** | ✅ | ↗️ | ↗️ | FLUX-powered artwork (web only) |
+| 🔧 **Troubleshooting** | ✅ | ✅ | ✅ | Reddit-proven device solutions |
+| 💬 **Smart Chat** | ✅ | ✅ | ✅ | Natural conversation with Claude |
+| 📝 **Draft Approval** | ❌ | ❌ | ✅ | Human reviews before sending |
 
-Pre-built answers for common questions - **instant responses, zero API calls**:
-
-```python
-# Quick Answers (immediate)
-- Discount codes: "thankyou10 for 10% off"
-- International shipping: "Yes, we ship to Canada, UK, Europe, Australia..."
-- Terminology: "A spacer keeps the heater from touching the housing"
-- V5 settings: "TCR 180-200, 480°F, 38W max"
-- Core heat levels: All 6 color settings with temps
-
-# Product Comparisons
-- V5 vs V5 XL: "XL has longer top piece, 30% bigger cup"
-- Core vs V5: "Core = easy all-in-one, V5 = more control"
-- Core vs Fogger: "Core = simple, Fogger = forced air"
-
-# Troubleshooting (Reddit-proven solutions)
-- "Check Atomizer" error → Tighten 510 pin
-- Resistance jumping → Clean threads
-- Leaking → Load less, lower temp
-- No vapor → Check wattage and battery
-
-# Customer Service Templates
-- Damaged items → Photo + order number process
-- Wrong items → Quick resolution flow
-- Missing items → Verification steps
-```
-
-### 2. RAG Retriever (Retrieval Augmented Generation)
-
-**5-signal hybrid retrieval** - not just keyword matching:
-
-```python
-RETRIEVAL_SIGNALS = {
-    'keyword_index':    # Auto-built from ALL product names (jars, shirts, hoodies, etc.)
-    'semantic_search':  # Vector embeddings - meaning-based similarity (0.4 weight)
-    'lexical_search':   # Exact text matching with singular/plural expansion (0.3 weight)
-    'priority_boost':   # Main kits ranked higher than accessories (0.2 weight)
-    'business_rules':   # XL before regular V5, Core XL before older models (0.1 weight)
-}
-```
-
-**Smart category detection:**
-- "jars" → UV glass storage products
-- "hoodies" → Hemp clothing category
-- "bubblers" → Also matches "hydratube", "water attachment" (synonyms)
-- "v5" → Defaults to XL (the recommended version)
-
-**Replacement parts filtering:**
-- Searches return main products by default
-- Accessories only show when specifically asked
-
-### 3. FLUX Image Generation (Local + Unfiltered)
-
-**No cloud APIs. No content filters. Your hardware, your rules.**
-
-```python
-# Local ComfyUI Integration
-SERVER = "127.0.0.1:8188"
-MODEL = "flux1-schnell.safetensors"
-CLIP = ["clip_l.safetensors", "t5xxl_fp16.safetensors"]
-VAE = "ae.safetensors"
-LORA = "flux-realism-xlabs.safetensors"
-
-# Output
-RESOLUTION = 1024x1024
-STEPS = 4  # Fast generation
-SAMPLER = "euler"
-```
-
-**Why local matters:**
-- No "this content violates our policies" rejections
-- No per-image API costs
-- Full creative control
-- Generated images auto-deleted after encoding (privacy)
-
-**Content moderation** (we handle it ourselves):
-- Inappropriate requests get playful redirects
-- "Maybe check out a V5 XL to relax instead?"
-- No hard blocks - just guidance back to products
-
-### 4. Agent Router (Intent Classification)
-
-Every query gets classified before processing:
-
-```
-Query: "where's my order #123456"
-  → Route: order_inquiry
-  → Action: WooCommerce lookup + status response
-
-Query: "v5 not heating"
-  → Route: troubleshooting
-  → Action: CAG cache → Reddit-proven solutions
-
-Query: "best vape for concentrates"
-  → Route: rag_search
-  → Action: Product search → Prioritize Core XL, V5 XL
-
-Query: "draw me a sunset"
-  → Route: image_request
-  → Action: Redirect to image generator
-
-Query: "tell me a joke"
-  → Route: general_mistral
-  → Action: Claude handles general chat
-```
-
-**Competitor handling:**
-- Mentions of Puffco, Storz & Bickel, PAX, etc.
-- Neutral response, redirect to Divine Tribe strengths
-- "I focus on Divine Tribe products..."
+> *↗️ = Redirects to website for image generation*
 
 ---
 
-## Data Pipeline
+## 🚀 The Evolution
 
-### Product Data (`products_clean.json`)
-
-**465KB of product knowledge** - scraped from ineedhemp.com:
-
-```json
-{
-  "name": "XL Deluxe Core eRig Kit- Now with 6 Heat Settings",
-  "url": "https://ineedhemp.com/product/xl-deluxe-core-erig",
-  "description": "All-in-one concentrate vaporizer...",
-  "category": "vaporizers",
-  "price": "165-185"
-}
 ```
-
-Categories include:
-- Vaporizers (Core, V5, Ruby Twist, Fogger)
-- Atomizers & Heaters
-- Hemp Clothing (shirts, hoodies, boxers, pants)
-- Glass Jars (UV and clear)
-- Bubblers/Hydratubes
-- Accessories & Replacement Parts
-
-### Embeddings (`product_embeddings.pkl`)
-
-**683KB of vector embeddings** - pre-computed for semantic search:
-
-```python
-# Using sentence-transformers
-model = SentenceTransformer('all-MiniLM-L6-v2')
-embeddings = model.encode(product_descriptions)
+┌──────────────────────────────────────────────────────────────────┐
+│  📜 VERSION HISTORY                                              │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  v1 ░░░░░░░░░░  Mistral 7B Local                                │
+│     └─▶ Fast but 4k context limit, hallucinated products        │
+│                                                                  │
+│  v2 ████░░░░░░  Claude API                                      │
+│     └─▶ 200k context, better reasoning, honest uncertainty      │
+│                                                                  │
+│  v3 ████████░░  Hybrid RAG/CAG                                  │
+│     └─▶ Instant cached answers + semantic product search        │
+│                                                                  │
+│  v4 ██████████  Dual System + FLUX  ◀── YOU ARE HERE            │
+│     └─▶ Email + Chat + Images sharing one brain                 │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
 ```
-
-Enables queries like:
-- "something for beginners" → Core XL Deluxe
-- "best flavor device" → V5 XL
-- "portable concentrate vape" → Multiple options ranked
-
-### YouTube Knowledge (`youtube_knowledge.json`)
-
-Extracted from Matt's tutorial videos:
-- V5 settings walkthrough
-- Pico Plus setup guide
-- Cleaning instructions
-- TCR dialing tips
 
 ---
 
-## Two Apps, One Brain
+## 🏗️ Architecture
 
-| Feature | Email Assistant | Chatbot |
-|---------|----------------|---------|
-| **Input** | Gmail inbox | Web widget / Telegram |
-| **Output** | Draft → Human approves → Send | Instant response |
-| **Speed** | Batch processing | Real-time |
-| **Learning** | Approved responses train system | Conversations improve RAG |
-| **Order Lookup** | WooCommerce API | WooCommerce API |
-| **Images** | N/A | FLUX generation |
+<table>
+<tr>
+<td width="50%" valign="top">
 
-**Shared Components:**
-- RAG retriever (same product search)
-- CAG cache (same instant answers)
-- WooCommerce client (same order data)
-- Claude prompts (same tone/rules)
+### ☁️ VPS Server (24/7)
+```
+╔════════════════════════════╗
+║  🖥️  ALWAYS-ON SERVER     ║
+╠════════════════════════════╣
+║                            ║
+║  🤖 Chatbot API (port 5001)║
+║  📦 143 Products Database  ║
+║  🧠 RAG + CAG Intelligence ║
+║  📧 Email Dashboard        ║
+║  🎮 Discord Bot            ║
+║  📊 355 Keyword Index      ║
+║                            ║
+╚════════════════════════════╝
+```
+
+</td>
+<td width="50%" valign="top">
+
+### 🍎 Mac (For Images)
+```
+╔════════════════════════════╗
+║  💻 LOCAL WORKSTATION     ║
+╠════════════════════════════╣
+║                            ║
+║  🎨 ComfyUI + FLUX AI      ║
+║  🔗 SSH Tunnel → VPS       ║
+║  🖼️ 1024x1024 Generation   ║
+║  ⚡ ~10 sec per image      ║
+║                            ║
+╚════════════════════════════╝
+```
+
+</td>
+</tr>
+</table>
+
+### 🔀 How Requests Flow
+
+```
+                              ┌─────────────────┐
+                              │  User Request   │
+                              └────────┬────────┘
+                                       │
+                                       ▼
+                              ┌─────────────────┐
+                              │  VPS Chatbot    │
+                              │  (Agent Router) │
+                              └────────┬────────┘
+                                       │
+              ┌────────────────────────┼────────────────────────┐
+              │                        │                        │
+              ▼                        ▼                        ▼
+     ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+     │  💬 Chat/FAQ   │      │  📦 Order      │      │  🎨 Image      │
+     │  CAG Cache     │      │  WooCommerce   │      │  ═══tunnel═══▶ │
+     │  RAG Search    │      │  Lookup        │      │  Mac ComfyUI   │
+     └────────┬───────┘      └────────┬───────┘      └────────┬───────┘
+              │                        │                        │
+              └────────────────────────┴────────────────────────┘
+                                       │
+                                       ▼
+                              ┌─────────────────┐
+                              │   Response! 🎉  │
+                              └─────────────────┘
+```
 
 ---
 
-## Email Workflow (Human-in-Loop)
+## 🧠 The Brain: RAG + CAG Hybrid
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+### 📚 RAG
+**Retrieval Augmented Generation**
 
 ```
-1. Email arrives in Gmail
-         |
-         v
-2. Bot classifies intent
-   - Order status?
-   - Product question?
-   - Return request?
-   - Needs escalation?
-         |
-         v
-3. Bot gathers context
-   - CAG: Check for cached answer
-   - RAG: Search relevant products
-   - WOO: Look up order if needed
-         |
-         v
-4. Claude generates draft
-         |
-         v
-5. Draft sent to Matt (web dashboard)
-   [APPROVE] [EDIT] [FLAG]
-         |
-         v
-6. Only approved emails get sent
-         |
-         v
-7. Approved = Training signal
-   - Response logged for learning
-   - Similar future emails handled faster
+     Query
+       │
+       ▼
+  ┌─────────┐
+  │ 🔍 5-Signal Search    │
+  ├─────────┤
+  │ • Semantic (40%)      │
+  │ • Lexical (30%)       │
+  │ • Priority (20%)      │
+  │ • Business (10%)      │
+  └─────────┘
+       │
+       ▼
+  Found Products
+       │
+       ▼
+  Claude Response
 ```
 
-**Auto-Read Training:**
-- Mark generic emails (shipping notifications, order confirmations) as "just read"
-- System learns patterns
-- Future similar emails auto-marked
+*For: Product questions, comparisons*
+
+</td>
+<td align="center" width="50%">
+
+### ⚡ CAG
+**Cache Augmented Generation**
+
+```
+     Query
+       │
+       ▼
+  ┌─────────┐
+  │ 💾 Cache Lookup       │
+  ├─────────┤
+  │ • Policies            │
+  │ • Settings            │
+  │ • Troubleshooting     │
+  │ • FAQ                 │
+  └─────────┘
+       │
+       ▼
+  ⚡ INSTANT!
+  (No API call)
+```
+
+*For: Common questions, known issues*
+
+</td>
+</tr>
+</table>
+
+### 🎯 Smart Routing
+
+| Route | Triggers | Example Query |
+|:------|:---------|:--------------|
+| `📦 order` | order #, tracking, where's my | "Where's my order #12345?" |
+| `🛒 rag` | product names, recommendations | "Best vape for concentrates?" |
+| `💾 cache` | policies, settings, how-to | "What's your return policy?" |
+| `🔧 troubleshoot` | not working, error, problem | "My V5 shows check atomizer" |
+| `🎨 image` | draw, create, generate, paint | "Draw a dragon vaping" |
+| `💬 general` | everything else | "Tell me a joke" |
 
 ---
 
-## Project Structure
+## 🎨 AI Image Generation
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                                                                    │
+│  🎨 FLUX IMAGE PIPELINE                                           │
+│                                                                    │
+│  User: "epic sunset over mountains"                               │
+│         │                                                          │
+│         ▼                                                          │
+│  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐       │
+│  │ VPS receives │ ──▶ │ SSH Tunnel   │ ──▶ │ Mac ComfyUI  │       │
+│  │ request      │     │ port 8188    │     │ FLUX model   │       │
+│  └──────────────┘     └──────────────┘     └──────────────┘       │
+│                                                   │                │
+│                                                   ▼                │
+│                                            ┌──────────────┐       │
+│                                            │ 🖼️ Generated │       │
+│                                            │ 1024x1024    │       │
+│                                            │ ~10 seconds  │       │
+│                                            └──────────────┘       │
+│                                                   │                │
+│         ◀─────────────────────────────────────────┘                │
+│         │                                                          │
+│  User sees image!                                                  │
+│                                                                    │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+| Spec | Value |
+|:-----|:------|
+| 🎯 Model | FLUX Schnell |
+| 📐 Resolution | 1024 × 1024 |
+| ⚡ Speed | ~10 seconds |
+| 🎨 Style | Photorealistic to artistic |
+| 🔒 Privacy | No cloud, no filters, local only |
+
+---
+
+## 📁 Project Structure
 
 ```
 Divine Tribe Email Assistant/
-├── modules/                 # SHARED INTELLIGENCE
-│   ├── agent_router.py      # Query classification
-│   ├── cag_cache.py         # Cached answers (43KB of knowledge)
-│   ├── rag_retriever.py     # 5-signal hybrid search
-│   ├── image_generator.py   # FLUX via ComfyUI
-│   ├── vector_store.py      # Embedding search
-│   ├── product_database.py  # Product lookup
-│   ├── context_manager.py   # Session tracking
-│   ├── conversation_memory.py
-│   ├── conversation_logger.py
-│   ├── intent_classifier.py
-│   └── query_preprocessor.py
 │
-├── data/                    # KNOWLEDGE BASE
-│   ├── products_clean.json  # All products (465KB)
-│   ├── product_embeddings.pkl # Vector embeddings (683KB)
-│   ├── youtube_knowledge.json # Tutorial content
-│   └── conversation_logs/   # Learning data
+├── 🤖 chatbot/
+│   ├── chatbot_modular.py        # Main chatbot engine
+│   ├── telegram_handler.py       # Telegram integration
+│   └── youtube_knowledge.py      # Tutorial content loader
 │
-├── email/                   # EMAIL APP
-│   ├── web_dashboard.py     # Flask dashboard
-│   ├── smart_responder.py   # Response generation
-│   ├── gmail_client.py      # Gmail API
-│   ├── woo_client.py        # WooCommerce API
-│   └── training.py          # Auto-read training
+├── 📧 email/
+│   ├── email_assistant.py        # Email processor
+│   ├── gmail_client.py           # Gmail API wrapper
+│   ├── web_dashboard.py          # Admin interface
+│   ├── woo_client.py             # WooCommerce orders
+│   └── smart_responder.py        # Response generator
 │
-├── chatbot/                 # CHAT APP
-│   └── [chat implementation]
+├── 🧩 modules/
+│   ├── agent_router.py           # Smart query routing
+│   ├── cag_cache.py              # Cached responses (43KB)
+│   ├── rag_retriever.py          # 5-signal search
+│   ├── product_database.py       # Product lookups
+│   ├── image_generator.py        # FLUX integration
+│   ├── order_verify.py           # Secure verification
+│   ├── vector_store.py           # Embeddings
+│   └── context_manager.py        # Session tracking
 │
-├── templates/web/           # Dashboard UI
-│   └── inbox.html
+├── 📊 data/
+│   ├── products_clean.json       # 143 products (465KB)
+│   ├── product_embeddings.pkl    # Vectors (683KB)
+│   └── youtube_knowledge.json    # Video transcripts
 │
-├── credentials/             # Git-ignored
-│   └── [API keys]
+├── 🎨 ComfyUI/                   # Local only (not in git)
+│   └── [FLUX models & workflows]
 │
-└── .env                     # Config (git-ignored)
+├── 📋 templates/web/
+│   └── inbox.html                # Dashboard UI
+│
+└── 🔐 credentials/               # Git-ignored secrets
 ```
 
 ---
 
-## Tech Stack
+## 🚀 Quick Start
 
-| Component | Technology |
-|-----------|------------|
-| AI Brain | Claude 3.5 Haiku |
-| RAG Search | Sentence Transformers + Custom Hybrid |
-| CAG Cache | Python dictionaries (43KB pre-built) |
-| Image Gen | FLUX via ComfyUI (local) |
-| Email | Gmail API |
-| Orders | WooCommerce REST API |
-| Dashboard | Flask |
-| Process Mgmt | PM2 |
-| Hosting | VPS (Ubuntu) |
+### 🎨 Start Image Generation (Mac)
+
+```bash
+# Double-click on Desktop:
+iNeedHempChatBot.command
+```
+
+**You'll see:**
+```
+==================================================
+  STARTING COMFYUI IMAGE SERVER
+==================================================
+   ComfyUI [█████████████████████████████] 100% Ready!
+==================================================
+
+==================================================
+  CONNECTING COMFYUI TO VPS
+==================================================
+   ComfyUI tunnel ready (VPS:8188 → Mac:8188)
+==================================================
+
+==========================================
+  IMAGE GENERATION ACTIVE
+==========================================
+
+  ComfyUI: Running locally
+  Tunnel:  VPS:8188 → Mac:8188
+
+  [23:41:02] ComfyUI: Online
+  [23:42:02] ComfyUI: Online
+```
+
+### 🖥️ VPS Commands
+
+```bash
+# Check status
+pm2 status
+
+# View logs
+pm2 logs chatbot --lines 50
+
+# Restart
+pm2 restart chatbot
+```
 
 ---
 
-## Key Features
+## 🔒 Security
 
-- **Shared Learning** - Email & chat feed the same AI brain
-- **Human-in-Loop** - All emails require approval (for now)
-- **5-Signal RAG** - Semantic + lexical + keyword + priority + business rules
-- **CAG Cache** - 100+ pre-built answers for instant response
-- **WooCommerce Live** - Real order status, no stale data
-- **FLUX Local** - Unfiltered image generation on your hardware
-- **Auto-Read Training** - Learns what emails to skip
-- **Content Moderation** - Playful redirects instead of hard blocks
-- **Competitor Neutral** - Doesn't trash-talk, just redirects
-
----
-
-## Community
-
-- **Discord:** https://discord.com/invite/f3qwvp56be
-- **Reddit:** https://www.reddit.com/r/DivineTribeVaporizers/
-- **YouTube:** https://www.youtube.com/@divinetribe1
-- **Shop:** https://ineedhemp.com
-- **Email:** matt@ineedhemp.com
+| Protection | Description |
+|:-----------|:------------|
+| 🛡️ **Rate Limit** | 20 chat/min, 5 images/min |
+| 🚫 **Abuse Block** | Auto-block rapid requests |
+| 🔐 **Order Verify** | Zip + Order # required |
+| 📝 **Char Limit** | 1000 max per message |
+| 🔒 **DM Privacy** | Order info via Discord DM |
+| ✅ **Approval** | Emails require human OK |
 
 ---
 
-## Remember
+## 📊 Stats
 
-> **When in doubt, flag for human review. Never send without approval.**
+<table>
+<tr>
+<td align="center">
+
+### 📦 Products
+```
+    143
+```
+*in database*
+
+</td>
+<td align="center">
+
+### 🔑 Keywords
+```
+    355
+```
+*indexed*
+
+</td>
+<td align="center">
+
+### 🗺️ Mappings
+```
+     24
+```
+*canonical*
+
+</td>
+<td align="center">
+
+### 💾 Cache
+```
+   43KB
+```
+*instant answers*
+
+</td>
+</tr>
+</table>
 
 ---
 
-*Built for [Divine Tribe](https://ineedhemp.com) by Matt Macosko*
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|:------|:-----------|
+| 🧠 AI Brain | Claude 3.5 Haiku |
+| 🔍 Search | Sentence Transformers + Hybrid |
+| 💾 Cache | Python (43KB pre-built) |
+| 🎨 Images | FLUX via ComfyUI |
+| 📧 Email | Gmail API |
+| 🛒 Orders | WooCommerce REST |
+| 🖥️ Dashboard | Flask |
+| ⚙️ Process | PM2 |
+| ☁️ Host | Ubuntu VPS |
+
+---
+
+## 📞 Connect
+
+<table>
+<tr>
+<td align="center">
+
+### 📧 Email
+**matt@ineedhemp.com**
+
+</td>
+<td align="center">
+
+### 💬 Discord
+**[Join Server](https://discord.com/invite/f3qwvp56be)**
+
+</td>
+<td align="center">
+
+### 📱 Reddit
+**[r/DivineTribeVaporizers](https://reddit.com/r/DivineTribeVaporizers)**
+
+</td>
+<td align="center">
+
+### 🌐 Shop
+**[ineedhemp.com](https://ineedhemp.com)**
+
+</td>
+</tr>
+</table>
+
+---
+
+<p align="center">
+  <b>Made with 💚 in Humboldt County, California</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square" alt="Status"/>
+  <img src="https://img.shields.io/badge/AI-Claude_3.5-blueviolet?style=flat-square" alt="AI"/>
+  <img src="https://img.shields.io/badge/Images-FLUX-orange?style=flat-square" alt="Images"/>
+  <img src="https://img.shields.io/badge/RAG-5_Signal-green?style=flat-square" alt="RAG"/>
+</p>
+
+<p align="center">
+  <i>When in doubt, flag for human review. Never send without approval.</i>
+</p>

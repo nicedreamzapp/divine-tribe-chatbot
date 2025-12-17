@@ -42,7 +42,7 @@ def get_rag():
         # Load products
         try:
             import json
-            products_path = os.path.join(os.path.dirname(__file__), 'products_clean.json')
+            products_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'products_clean.json')
             with open(products_path, 'r') as f:
                 data = json.load(f)
                 # Handle nested format

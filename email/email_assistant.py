@@ -136,9 +136,9 @@ class EmailAssistant:
         print("=" * 60)
 
     def _load_product_knowledge(self) -> str:
-        """Load product info from the Tribe Chatbot"""
+        """Load product info from the product database"""
         knowledge = ""
-        products_file = "/Users/matthewmacosko/Desktop/Tribe Chatbot/products_clean.json"
+        products_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "products_clean.json")
 
         try:
             with open(products_file, 'r') as f:
@@ -283,6 +283,7 @@ CRITICAL RULES:
 6. Always offer to help further
 7. Include relevant links when helpful
 8. If this is a follow-up in a conversation, acknowledge previous messages and continue naturally
+9. If someone asks about generating images or AI art, let them know they can use our website chatbot at https://ineedhemp.com which has AI image generation built in
 
 CUSTOMER NAME: {customer_name}
 EMAIL CATEGORY: {classification['category']}

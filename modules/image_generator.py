@@ -9,6 +9,17 @@ import time
 import glob
 import os
 import uuid
+import sys
+
+
+def print_progress_bar(current, total, prefix='', suffix='', length=40):
+    """Print a progress bar to the terminal"""
+    percent = current / total
+    filled = int(length * percent)
+    bar = '█' * filled + '░' * (length - filled)
+    sys.stdout.write(f'\r{prefix} [{bar}] {int(percent*100)}% {suffix}')
+    sys.stdout.flush()
+
 
 class ImageGenerator:
     def __init__(self):
@@ -30,7 +41,7 @@ class ImageGenerator:
             print("✅ FLUX model already loaded")
             return True
 
-        print("🔄 Warming up FLUX model (this takes 30-60 seconds on first load)...")
+        print("🔄 Loading FLUX model into VRAM...")
 
         # Generate a tiny 256x256 test image to load the model
         warmup_workflow = {
@@ -126,12 +137,12 @@ class ImageGenerator:
             result = json.loads(response.read())
             prompt_id = result.get('prompt_id')
 
-            if prompt_id and self.wait_for_image(prompt_id, timeout=120):
+            if prompt_id and self._wait_for_warmup(prompt_id, timeout=90):
                 self.model_loaded = True
-                print("✅ FLUX model loaded and ready!")
+                print("")  # New line after progress bar
 
                 # Clean up warmup image
-                output_dir = "/Users/matthewmacosko/Desktop/ComfyUI-ImageGen/ComfyUI/output"
+                output_dir = "/Users/matthewmacosko/Desktop/Divine Tribe Email Assistant/ComfyUI/output"
                 warmup_images = glob.glob(f"{output_dir}/warmup_delete*.png")
                 for img in warmup_images:
                     try:
@@ -164,16 +175,51 @@ class ImageGenerator:
                 req = urllib.request.Request(f"http://{self.server_address}/history/{prompt_id}")
                 response = urllib.request.urlopen(req)
                 history = json.loads(response.read())
-                
+
                 if prompt_id in history:
                     if history[prompt_id].get('outputs'):
                         return True
-                    
+
             except:
                 pass
             time.sleep(2)
         return False
-    
+
+    def _wait_for_warmup(self, prompt_id, timeout=90):
+        """Wait for warmup with progress bar"""
+        start_time = time.time()
+        check_interval = 1  # Check every second
+
+        while time.time() - start_time < timeout:
+            elapsed = time.time() - start_time
+            # Estimate progress (FLUX typically takes 30-60 seconds)
+            estimated_total = 45  # Estimate 45 seconds for warmup
+            progress = min(elapsed / estimated_total, 0.99)  # Cap at 99% until done
+
+            print_progress_bar(
+                progress, 1.0,
+                prefix='   FLUX',
+                suffix='Loading...',
+                length=30
+            )
+
+            try:
+                req = urllib.request.Request(f"http://{self.server_address}/history/{prompt_id}")
+                response = urllib.request.urlopen(req)
+                history = json.loads(response.read())
+
+                if prompt_id in history:
+                    if history[prompt_id].get('outputs'):
+                        # Complete!
+                        print_progress_bar(1.0, 1.0, prefix='   FLUX', suffix='Complete!', length=30)
+                        return True
+
+            except:
+                pass
+            time.sleep(check_interval)
+
+        return False
+
     def generate_for_chatbot(self, prompt):
         """Generate image using proper FLUX workflow with separate VAE loader"""
         
@@ -277,7 +323,7 @@ class ImageGenerator:
             # Wait for generation to complete
             if prompt_id and self.wait_for_image(prompt_id):
                 # Look for the generated image
-                output_dir = "/Users/matthewmacosko/Desktop/ComfyUI-ImageGen/ComfyUI/output"
+                output_dir = "/Users/matthewmacosko/Desktop/Divine Tribe Email Assistant/ComfyUI/output"
                 pattern = f"{output_dir}/{filename_prefix}*.png"
                 
                 # Give it a moment for file to be written
