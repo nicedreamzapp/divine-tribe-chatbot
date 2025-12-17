@@ -5,6 +5,7 @@ Gmail-like interface for managing customer emails
 """
 
 import os
+import sys
 import json
 import sqlite3
 from datetime import datetime
@@ -13,9 +14,17 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, R
 from flask_cors import CORS
 from dotenv import load_dotenv
 
+# Add parent directory to path for shared modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 load_dotenv()
 
-app = Flask(__name__, template_folder='templates/web', static_folder='static')
+# Get the project root directory
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+app = Flask(__name__,
+            template_folder=os.path.join(PROJECT_ROOT, 'templates/web'),
+            static_folder=os.path.join(PROJECT_ROOT, 'static'))
 app.secret_key = os.getenv('SECRET_KEY', 'divine-tribe-email-secret-2024')
 CORS(app)
 

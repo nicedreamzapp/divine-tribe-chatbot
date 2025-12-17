@@ -5,6 +5,7 @@ Uses RAG, CAG, and WooCommerce for smart, accurate responses
 """
 
 import os
+import sys
 import re
 import json
 from datetime import datetime
@@ -12,11 +13,14 @@ from typing import Optional, Dict, Tuple
 from dotenv import load_dotenv
 import anthropic
 
-# Import chatbot modules
+# Add parent directory to path for shared modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import shared modules (from parent/modules/)
 from modules.cag_cache import CAGCache
 from modules.rag_retriever import RAGRetriever
 from modules.product_database import ProductDatabase
-from woo_client import WooCommerceClient
+from email.woo_client import WooCommerceClient
 
 load_dotenv()
 
