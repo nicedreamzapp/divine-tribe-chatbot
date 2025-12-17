@@ -188,9 +188,16 @@ def init_db():
             sent_response TEXT,
             responded_at TIMESTAMP,
             order_number TEXT,
+            thread_count INTEGER DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # Add thread_count column if it doesn't exist (for existing databases)
+    try:
+        c.execute('ALTER TABLE emails ADD COLUMN thread_count INTEGER DEFAULT 1')
+    except:
+        pass  # Column already exists
 
     # Customer history table
     c.execute('''
@@ -241,8 +248,8 @@ def save_email(email_data):
 
     c.execute('''
         INSERT OR REPLACE INTO emails
-        (id, thread_id, from_email, from_name, subject, body, received_at, status, category, draft_response, order_number)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (id, thread_id, from_email, from_name, subject, body, received_at, status, category, draft_response, order_number, thread_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         email_data.get('id'),
         email_data.get('thread_id'),
@@ -254,7 +261,8 @@ def save_email(email_data):
         email_data.get('status', 'unread'),
         email_data.get('category', 'general'),
         email_data.get('draft_response'),
-        email_data.get('order_number')
+        email_data.get('order_number'),
+        email_data.get('thread_count', 1)
     ))
 
     # Update customer record
@@ -410,15 +418,116 @@ def api_get_email(email_id):
     return jsonify({'error': 'Not found'}), 404
 
 
-@app.route('/api/emails/<email_id>/generate', methods=['POST'])
+@app.route('/api/emails/<email_id>/thread')
 @requires_auth
-def api_generate_response(email_id):
-    """Generate smart AI response for email"""
+def api_get_thread(email_id):
+    """Get full thread conversation for an email"""
     email = get_email(email_id)
     if not email:
         return jsonify({'error': 'Not found'}), 404
 
-    response, metadata = generate_response(email)
+    thread_id = email.get('thread_id')
+    if not thread_id:
+        # No thread, return single message
+        return jsonify({
+            'thread': [{
+                'from': email.get('from_name') or email.get('from_email'),
+                'from_email': email.get('from_email'),
+                'date': email.get('received_at'),
+                'body': email.get('body'),
+                'is_customer': True
+            }]
+        })
+
+    # Try to get full thread from Gmail
+    gmail = get_gmail_client()
+    if not gmail:
+        return jsonify({
+            'thread': [{
+                'from': email.get('from_name') or email.get('from_email'),
+                'from_email': email.get('from_email'),
+                'date': email.get('received_at'),
+                'body': email.get('body'),
+                'is_customer': True
+            }]
+        })
+
+    try:
+        thread_messages = gmail.get_thread(thread_id)
+        my_email = os.getenv('GMAIL_ADDRESS', 'divinetribe@ineedhemp.com').lower()
+
+        formatted = []
+        for msg in thread_messages:
+            from_email = (msg.get('from_email') or '').lower()
+            is_customer = my_email not in from_email and 'ineedhemp.com' not in from_email
+
+            # Clean the body
+            body = msg.get('body', '')
+            if hasattr(gmail, '_clean_body'):
+                body = gmail._clean_body(body)
+
+            formatted.append({
+                'from': msg.get('from', msg.get('from_email')),
+                'from_email': msg.get('from_email'),
+                'date': msg.get('date'),
+                'body': body,
+                'is_customer': is_customer
+            })
+
+        return jsonify({'thread': formatted, 'thread_count': len(formatted)})
+
+    except Exception as e:
+        print(f"Thread fetch error: {e}")
+        return jsonify({
+            'thread': [{
+                'from': email.get('from_name') or email.get('from_email'),
+                'from_email': email.get('from_email'),
+                'date': email.get('received_at'),
+                'body': email.get('body'),
+                'is_customer': True
+            }]
+        })
+
+
+@app.route('/api/emails/<email_id>/generate', methods=['POST'])
+@requires_auth
+def api_generate_response(email_id):
+    """Generate smart AI response for email with full thread context"""
+    email = get_email(email_id)
+    if not email:
+        return jsonify({'error': 'Not found'}), 404
+
+    # Get full thread context for better AI responses
+    thread_id = email.get('thread_id')
+    thread_context = ""
+    if thread_id:
+        gmail = get_gmail_client()
+        if gmail:
+            try:
+                thread_messages = gmail.get_thread(thread_id)
+                my_email = os.getenv('GMAIL_ADDRESS', 'divinetribe@ineedhemp.com').lower()
+
+                # Build conversation context (oldest first for context)
+                parts = []
+                for msg in thread_messages:
+                    from_email = (msg.get('from_email') or '').lower()
+                    sender = "CUSTOMER" if my_email not in from_email and 'ineedhemp.com' not in from_email else "DIVINE TRIBE"
+                    body = msg.get('body', '')
+                    if hasattr(gmail, '_clean_body'):
+                        body = gmail._clean_body(body)
+                    parts.append(f"[{sender}]: {body[:1500]}")  # Limit each message
+
+                thread_context = "\n\n---\n\n".join(parts)
+            except Exception as e:
+                print(f"Thread context error: {e}")
+
+    # Add thread context to email data for the responder
+    email_with_context = dict(email)
+    if thread_context:
+        email_with_context['thread_context'] = thread_context
+        email_with_context['body'] = f"FULL CONVERSATION THREAD:\n\n{thread_context}\n\n---\nLATEST MESSAGE TO RESPOND TO:\n{email.get('body', '')}"
+
+    response, metadata = generate_response(email_with_context)
     if response:
         # Save draft and metadata
         conn = get_db()
@@ -638,7 +747,8 @@ def api_refresh_emails():
             'subject': e.get('subject'),
             'body': e.get('body', e.get('snippet', '')),
             'received_at': e.get('date'),
-            'status': 'unread'
+            'status': 'unread',
+            'thread_count': 1  # Will be fetched when viewing thread
         })
         new_count += 1
 
@@ -670,7 +780,7 @@ def save_training_data(data):
 @app.route('/api/emails/<email_id>/save-training', methods=['POST'])
 @requires_auth
 def api_save_training(email_id):
-    """Save a good response for training the AI"""
+    """Save a good response for training the AI - with PII stripped"""
     data = request.json
     response_text = data.get('response', '')
     was_edited = data.get('was_edited', False)
@@ -683,19 +793,27 @@ def api_save_training(email_id):
     if not response_text.strip():
         return jsonify({'error': 'No response to save'}), 400
 
+    # Import privacy module for PII stripping
+    try:
+        from modules.privacy import strip_pii, hash_email
+    except:
+        # Fallback if module not available
+        strip_pii = lambda x: x
+        hash_email = lambda x: x[:8] + '...' if x else ''
+
     # Load existing training data
     training = load_training_data()
 
-    # Create training example
+    # Create training example with PII STRIPPED
     example = {
         'id': email_id,
         'timestamp': datetime.now().isoformat(),
-        'customer_email': email.get('from_email'),
-        'subject': email.get('subject'),
-        'customer_message': email.get('body'),
-        'approved_response': response_text,
+        'customer_hash': hash_email(email.get('from_email', '')),  # Hash, not actual email
+        'subject': strip_pii(email.get('subject', '')),  # Strip PII
+        'customer_message': strip_pii(email.get('body', '')),  # Strip PII
+        'approved_response': strip_pii(response_text),  # Strip PII
         'was_edited': was_edited,
-        'original_draft': original_draft if was_edited else None,
+        'original_draft': strip_pii(original_draft) if was_edited else None,
         'category': email.get('category', 'general')
     }
 

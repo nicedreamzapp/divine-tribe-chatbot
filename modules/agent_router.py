@@ -7,6 +7,14 @@ FIXED: Creative/story queries go to general_mistral, not troubleshooting
 from typing import Dict, Tuple, Optional
 import re
 
+# Import order verification for secure order lookups
+try:
+    from modules.order_verify import extract_order_number, handle_order_inquiry
+    ORDER_VERIFY_AVAILABLE = True
+except ImportError:
+    ORDER_VERIFY_AVAILABLE = False
+    print("⚠️  Order verification not available")
+
 # Import enterprise components
 try:
     from modules.query_preprocessor import QueryPreprocessor
@@ -135,6 +143,23 @@ class AgentRouter:
         """Main routing logic - FIXED for creative queries"""
         query_lower = query.lower().strip()
 
+        # ROUTE -2: CHECK FOR PENDING ORDER VERIFICATION (highest priority)
+        # If we're waiting for customer to verify their identity, route to order
+        if context and context.get('pending_challenge'):
+            if ORDER_VERIFY_AVAILABLE:
+                result = handle_order_inquiry(query, context)
+                return {
+                    'route': 'order',
+                    'data': result.get('response'),
+                    'reasoning': 'Order verification answer',
+                    'needs_verification': result.get('needs_verification', False),
+                    'verified': result.get('verified', False),
+                    'order_info': result.get('order_info'),
+                    'challenge': result.get('challenge'),
+                    'pending_challenge': result.get('pending_challenge'),
+                    'needs_order_number': result.get('needs_order_number', False)
+                }
+
         # ROUTE -1: CONTENT MODERATION (before anything else)
         if self._is_inappropriate(query_lower):
             return {
@@ -255,14 +280,31 @@ class AgentRouter:
                 'reasoning': 'Return request'
             }
         
-        # 2E: Order status
+        # 2E: Order status - USE REAL WOOCOMMERCE LOOKUP
         if self._is_order_inquiry(query_lower):
-            response = self.cache.get_order_response(query)
-            return {
-                'route': 'order',
-                'data': response,
-                'reasoning': 'Order inquiry'
-            }
+            if ORDER_VERIFY_AVAILABLE:
+                # Use real order verification with WooCommerce
+                order_context = context or {}
+                result = handle_order_inquiry(query, order_context)
+
+                return {
+                    'route': 'order',
+                    'data': result.get('response'),
+                    'reasoning': 'Order inquiry - WooCommerce lookup',
+                    'needs_verification': result.get('needs_verification', False),
+                    'verified': result.get('verified', False),
+                    'order_info': result.get('order_info'),
+                    'challenge': result.get('challenge'),  # Store in session for next turn
+                    'needs_order_number': result.get('needs_order_number', False)
+                }
+            else:
+                # Fallback to static response
+                response = self.cache.get_order_response(query)
+                return {
+                    'route': 'order',
+                    'data': response,
+                    'reasoning': 'Order inquiry (static - WooCommerce unavailable)'
+                }
         
         # ROUTE 2.5: COMPANY INFO
         company_queries = ['about divine tribe', 'what is divine tribe', 'who is divine tribe',
@@ -358,7 +400,17 @@ class AgentRouter:
     
     def _is_order_inquiry(self, query: str) -> bool:
         """Check if user is asking about their order"""
-        return any(keyword in query for keyword in self.order_keywords)
+        # Check for order keywords
+        if any(keyword in query for keyword in self.order_keywords):
+            return True
+
+        # Also check if query is just an order number (5-7 digits)
+        # This handles when user replies with just "199214"
+        clean_query = query.strip().replace('#', '')
+        if clean_query.isdigit() and 5 <= len(clean_query) <= 7:
+            return True
+
+        return False
     
     def _is_image_request(self, query: str) -> bool:
         """

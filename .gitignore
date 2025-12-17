@@ -71,6 +71,9 @@ tmp/
 # ----- CLAUDE CODE -----
 .claude/
 
+# ----- COMFYUI (Large AI model files) -----
+ComfyUI/
+
 # ----- SPECIFIC PRIVATE FILES -----
 # Add any specific files with IPs or sensitive info here
 *.bak

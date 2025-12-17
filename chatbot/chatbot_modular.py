@@ -26,7 +26,8 @@ load_dotenv()
 claude_client = anthropic.Anthropic()
 CLAUDE_MODEL = "claude-3-5-haiku-20241022"  # Fast and cost-effective
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add parent directory to path for modules import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from modules.product_database import ProductDatabase
 from modules.conversation_memory import ConversationMemory
@@ -67,6 +68,9 @@ RAPID_FIRE_WINDOW = 10  # seconds
 RAPID_FIRE_MAX = 8  # max requests in window before temporary block
 TEMP_BLOCK_DURATION = 60  # seconds to block after rapid-fire detection
 blocked_ips = {}  # IP -> unblock timestamp
+
+# Order verification storage - tracks pending verifications per session
+order_verification_pending = {}  # session_id -> challenge dict
 
 # Configuration
 MAX_MESSAGE_LENGTH = 1000  # characters
@@ -128,7 +132,7 @@ def validate_message(message: str) -> tuple[bool, str]:
     return True, ""
 
 # Initialize systems
-database = ProductDatabase('products_clean.json')
+database = ProductDatabase('data/products_clean.json')
 memory = ConversationMemory(max_history=10)
 logger = ConversationLogger()
 context_manager = ContextManager() if CONTEXT_MANAGER_AVAILABLE else None
@@ -141,15 +145,29 @@ else:
     cag_cache = None
     agent_router = None
 
-print("✅ Divine Tribe Chatbot - Production Ready")
 print(f"✅ Products loaded: {len(database.products)}")
 
-# Check ComfyUI and pre-load FLUX model
+# Check ComfyUI and pre-load FLUX model (BLOCKS until ready)
 if image_gen.check_comfyui_running():
-    print("✅ ComfyUI detected - warming up FLUX model...")
-    image_gen.warmup_model()
+    print("")
+    print("=" * 50)
+    print("  LOADING FLUX IMAGE MODEL")
+    print("=" * 50)
+    success = image_gen.warmup_model()
+    if success:
+        print("=" * 50)
+        print("  ✅ IMAGE GENERATION READY")
+        print("=" * 50)
+    else:
+        print("=" * 50)
+        print("  ⚠️  FLUX warmup failed - images may be slow")
+        print("=" * 50)
 else:
-    print("⚠️  ComfyUI not running - image generation offline")
+    print("")
+    print("=" * 50)
+    print("  ⚠️  COMFYUI NOT RUNNING")
+    print("  Image generation DISABLED")
+    print("=" * 50)
 
 
 def convert_markdown_to_html(text: str) -> str:
@@ -426,22 +444,44 @@ def chat():
         resolved_query, follow_up_context = resolve_query_with_context(user_message, session_id)
         
         # STEP 2: Get retrieval context
-        retrieval_context = None
+        retrieval_context = {}
         if context_manager:
-            retrieval_context = context_manager.get_retrieval_context(session_id)
-        
+            retrieval_context = context_manager.get_retrieval_context(session_id) or {}
+
+        # Include pending order verification if exists
+        if session_id in order_verification_pending:
+            retrieval_context['pending_challenge'] = order_verification_pending[session_id]
+            retrieval_context['pending_order_number'] = order_verification_pending[session_id].get('order_number')
+
         # STEP 3: Route the query
         if not agent_router:
             bot_response = "System not fully initialized. Email matt@ineedhemp.com"
         else:
             routing_result = agent_router.route(resolved_query, retrieval_context, session_id)
             route = routing_result['route']
-            
+
             print(f"🎯 Route: {route} - {routing_result['reasoning']}")
-            
+
             # Execute based on route
-            if route in ['cache', 'troubleshooting', 'how_to', 'warranty', 'return', 'order', 'support', 'comparison', 'competitor_mention', 'quick_answer', 'image_request', 'moderated', 'customer_service']:
+            if route in ['cache', 'troubleshooting', 'how_to', 'warranty', 'return', 'support', 'comparison', 'competitor_mention', 'quick_answer', 'image_request', 'moderated', 'customer_service']:
                 bot_response = routing_result['data']
+
+            elif route == 'order':
+                # Handle order verification flow
+                bot_response = routing_result['data']
+
+                # Store challenge for next message if verification needed
+                if routing_result.get('challenge'):
+                    order_verification_pending[session_id] = routing_result['challenge']
+                    print(f"📦 Stored order verification for session {session_id}")
+                elif routing_result.get('verified'):
+                    # Verification successful - clear pending
+                    if session_id in order_verification_pending:
+                        del order_verification_pending[session_id]
+                        print(f"✅ Order verified for session {session_id}")
+                elif routing_result.get('pending_challenge'):
+                    # Keep the challenge for retry
+                    order_verification_pending[session_id] = routing_result['pending_challenge']
             
             elif route == 'rag' or route == 'material_shopping':
                 # Get products from RAG
@@ -596,4 +636,4 @@ if __name__ == '__main__':
     print("🛡️  ABUSE PROTECTION: Rapid-fire detection enabled")
     print("🛡️  MESSAGE LIMIT: 1000 characters max")
     print("="*70 + "\n")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=False)

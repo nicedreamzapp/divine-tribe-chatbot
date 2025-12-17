@@ -19,6 +19,10 @@ python-dotenv==1.0.0
 requests==2.31.0
 aiohttp==3.9.1
 
-# Flask (for optional web dashboard)
+# Flask (for web chatbot and dashboard)
 flask==3.0.0
 flask-cors==4.0.0
+flask-limiter==3.5.0
+
+# Chatbot extras
+markdown==3.5.1
