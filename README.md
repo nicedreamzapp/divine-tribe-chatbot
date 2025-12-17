@@ -235,14 +235,14 @@ Customer: "looking for something for concentrates under $150"
                 │
                 ▼
         ┌───────────────────────────────────────────────────────────────┐
-        │ "For concentrates under $150, I'd recommend:                 │
+        │ "For concentrates, I'd recommend:                            │
         │                                                               │
-        │  1. Core eRig ($99) - All-in-one, super easy, 6 heat levels  │
-        │  2. V5 XL Kit ($85) - Best flavor, needs a mod               │
+        │  1. Core XL Deluxe - All-in-one, super easy, 6 heat levels  │
+        │  2. V5 XL Kit - Best flavor, needs a mod                     │
         │                                                               │
         │  The Core is great if you want grab-and-go simplicity.       │
         │  The V5 XL is better if you already have a mod and want      │
-        │  maximum flavor and control."                                │
+        │  maximum flavor and control. Check the site for pricing!"    │
         └───────────────────────────────────────────────────────────────┘
 ```
 
