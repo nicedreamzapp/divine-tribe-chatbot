@@ -1,93 +1,100 @@
-# Divine Tribe AI Assistant
+# 🔥 Divine Tribe AI
 
-Hybrid AI system powering **customer support emails** and **live chat** for [Divine Tribe](https://ineedhemp.com).
+> Customer support that learns. Email + Chat powered by shared intelligence.
 
-## Evolution
+[![Claude](https://img.shields.io/badge/AI-Claude-blueviolet)]()
+[![RAG](https://img.shields.io/badge/RAG-Enabled-green)]()
+[![CAG](https://img.shields.io/badge/CAG-Cached-orange)]()
 
-Started with **Mistral 7B** for local inference - fast but limited context and reasoning. Switched to **Claude** for:
-- Better understanding of complex customer questions
-- Longer context for email threads
-- More accurate product recommendations
-- Smarter conversation memory
+---
 
-The hybrid RAG/CAG architecture remained - just upgraded the brain.
+## The Journey
 
-## What It Does
+```
+v1  Mistral 7B     →  Fast, but limited context
+v2  Claude         →  Smarter reasoning, longer memory
+v3  Hybrid RAG/CAG →  Instant answers + deep knowledge
+v4  Dual System    →  Email + Chat sharing one brain  ← YOU ARE HERE
+```
 
-| App | Purpose |
-|-----|---------|
-| **Email Assistant** | Reads Gmail, drafts responses, human approves before sending |
-| **Chatbot** | Live chat widget + Telegram bot for instant support |
-
-Both apps share the same intelligence - every conversation makes the system smarter.
+---
 
 ## How It Works
 
 ```
-Customer Question (Email or Chat)
-              ↓
-     ┌────────────────┐
-     │  Check Cache   │  ← Instant answers to common questions
-     └────────────────┘
-              ↓
-     ┌────────────────┐
-     │  Search RAG    │  ← Find relevant products & knowledge
-     └────────────────┘
-              ↓
-     ┌────────────────┐
-     │  Order Lookup  │  ← WooCommerce integration
-     └────────────────┘
-              ↓
-     ┌────────────────┐
-     │   Claude AI    │  ← Generate helpful response
-     └────────────────┘
-              ↓
-     Human Review (email) / Direct Send (chat)
-              ↓
-     ┌────────────────┐
-     │  Learn & Save  │  ← Good responses improve the system
-     └────────────────┘
+         ┌─────────────┐     ┌─────────────┐
+         │   EMAIL     │     │    CHAT     │
+         │  Dashboard  │     │  Widget/TG  │
+         └──────┬──────┘     └──────┬──────┘
+                │                   │
+                └─────────┬─────────┘
+                          ▼
+                ┌─────────────────┐
+                │   SHARED BRAIN  │
+                ├─────────────────┤
+                │ ▸ CAG Cache     │  instant answers
+                │ ▸ RAG Search    │  product knowledge
+                │ ▸ Order Lookup  │  WooCommerce
+                │ ▸ Conv Memory   │  context
+                └────────┬────────┘
+                         ▼
+                ┌─────────────────┐
+                │    CLAUDE AI    │
+                └────────┬────────┘
+                         ▼
+                ┌─────────────────┐
+                │  LEARN & SAVE   │  → gets smarter
+                └─────────────────┘
 ```
-
-## Intelligence System
-
-### RAG (Retrieval Augmented Generation)
-Searches product database using semantic embeddings. Finds relevant products, specs, and knowledge to ground AI responses in real data.
-
-### CAG (Cached Augmented Generation)
-Caches approved responses to common questions. Provides instant answers without API calls. Grows smarter from every approved email.
-
-### Shared Learning
-- Conversation logs from both email and chat
-- Approved responses train the cache
-- Customer patterns improve over time
-
-## Features
-
-- **Human-in-the-loop** - All emails require approval
-- **Customer verification** - Order lookups require verification
-- **Auto-read training** - Learn which emails need no response
-- **Order integration** - Live WooCommerce data
-- **Multi-channel** - Email, web chat, Telegram
-
-## Project Structure
-
-```
-├── modules/          # Shared AI modules (RAG, CAG, etc.)
-├── data/             # Product data & knowledge base
-├── chatbot/          # Chat application
-├── email/            # Email application
-└── templates/        # Response templates
-```
-
-## Tech
-
-- Python / Flask
-- Claude AI (Anthropic)
-- Gmail API
-- WooCommerce API
-- Sentence Transformers
 
 ---
 
-*Customer support AI for Divine Tribe*
+## Two Apps, One Brain
+
+| | Email | Chat |
+|---|---|---|
+| **Input** | Gmail inbox | Web widget / Telegram |
+| **Output** | Draft → Human approves → Send | Instant response |
+| **Learning** | ✅ Approved responses train CAG | ✅ Conversations train RAG |
+
+Every interaction makes both smarter.
+
+---
+
+## Stack
+
+```
+Claude AI        │  reasoning
+RAG              │  product search (embeddings)
+CAG              │  cached answers
+WooCommerce API  │  live orders
+Gmail API        │  email I/O
+Flask            │  web dashboard
+```
+
+---
+
+## Structure
+
+```
+├── modules/     shared intelligence
+├── data/        products + knowledge
+├── chatbot/     chat app
+├── email/       email app
+└── templates/   UI
+```
+
+---
+
+## Key Features
+
+- 🧠 **Shared learning** - email & chat feed same AI
+- 👁️ **Human-in-loop** - all emails need approval
+- 🔍 **RAG search** - finds relevant products
+- ⚡ **CAG cache** - instant common answers
+- 📦 **Order lookup** - live WooCommerce data
+- 🏷️ **Auto-read training** - learns what to skip
+
+---
+
+*Built for [Divine Tribe](https://ineedhemp.com)*
