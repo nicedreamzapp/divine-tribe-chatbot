@@ -1,0 +1,26 @@
+{
+  "last_updated": "2025-12-16T05:01:59.173376",
+  "videos": {
+    "B6j5fwEhHI8": {
+      "title": "V5 Pico Plus Settings and Autofire Guide",
+      "transcript": "hey there I wanted to make a quick video for this new Pico plus with Auto fire that I'm selling on I hemp.com um it's the only uh Pico plus that you can buy with Auto fire that I'm pretty sure of so um if you get one of these this is the instructions for it pretty much in a nutshell so to turn it on and off you um click it five times real fast on this main button right here 1 2 3 4 5 and see when I press the buttons it's off right now so while the unit's off there's a plus and a minus button on the bottom if you hold both of them down at the same time you can choose which way you want the screen to go so if you're like right-handed or left-handed you can choose I like it facing this way so um and if you hold this main button down and this plus button right here you'll see this mod mod called TCR mode TCR mode is like um the only mode we have on this is M1 mode a lot of the other batteries have M1 M2 M3 for different coils I just wanted to keep this Pico as simple as possible so um what you can do is set this value right now I have the V5 on there and I like it around 200 180 to 200 for the um Quest lightning people like it around 110 to around 130 and for the V4 um the TCR can change but um it's usually anywhere from 200 to 300 so um we're going to go ahead and I'll show you one more feature if you hold down this minus button and the Plus at the same time it'll tell you how much voltage your battery has now I provide Sony VTC 6s with mine so you should see a good amount of voltage usually um this thing's not fully charged so it's probably putting off a little bit less so I clicked it back on with five clicks now when you um press this main button three times real fast 1 two 3 it'll give you the choice of temperature mode or wattage mode um if you're cleaning it or whatever I like to use it in wattage mode um all these coils have a certain amount of wattage that they can take you never want to blow the coil you never want to use too much wattage for the coil that you have there's always a maximum amount of wattage it's allowed to to use to get to temperature always be um careful with that number so like for this coil we're going to um put it in temperature mode 1 two 3 and it's an M1 my value was set to 200 when I had it turned off now um to set the wattage you're going to hit this button four times 1 two 3 four and you'll see it's 38 Watts 38 watts is the maximum amount of Watts I want to allow for this coil and I think it's like like um 27 for the lightning cup and the V4 is 33 Watts the dut coils um so also um to set the seconds you hold both of these buttons down at the same or this this button while the unit's on in the plus button and you can see you can set the time for Auto fire so I like it at 60 seconds anywhere between 50 and 60 is my personal preference but whatever you want you know um and then and for starting Auto fire you would just double click this button watch one two you can see it's like starting to heat up and it'll go through 60 seconds and you can see the amount of Watts that it uses to get to the temperature and try to like get to that temperature and once it reaches temperature this will flash like the temperature that you've preset it to I think this was set to 500 or 480 I had it set to um so every time it hits that it's just like peeking and trying to hit that temperature and just balancing back and forth to try and keep it at that temperature um the TCR number and value helps you keep this temperature right if there was a puddle still at 480 I would turn it up the TCR up if it charted at 480 I would turn the TCR down just so I know 480 is like that perfect burn where I I can swab it up and leaves just a little B tiny bit to swab up and it doesn't Char my bowl and it's not really a puddle left either so um um let's see what else am I forgetting on this um if I hold this plus button and the minus button that will lock this ohm reading I always like to see what the resistance is of the coil but a lot of people like to lock it and just have a um a constant Temp and just a constant usage but it's always good to have this resistance unlocked to just see what your resistance is or your coil it'll tell you if it needs to be cleaned or if there's a connection problem on this V5 cup 48 is a pretty good resistance but they can range anywhere from 044 or 43 to all the way to 0.51 um and basically that's how you use this Pico plus hope you're having a good day take care",
+      "url": "https://youtube.com/watch?v=B6j5fwEhHI8",
+      "settings": {
+        "tcr_values": [
+          200,
+          480,
+          480,
+          480
+        ],
+        "wattages": [
+          38,
+          38,
+          33
+        ],
+        "temperatures": [],
+        "tips": []
+      }
+    }
+  },
+  "extracted_settings": {}
+}

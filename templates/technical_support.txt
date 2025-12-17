@@ -1,0 +1,23 @@
+Subject: Re: {original_subject}
+
+Hi {first_name},
+
+Happy to help with that!
+
+{technical_answer}
+
+**Quick Troubleshooting Tips:**
+{troubleshooting_tips}
+
+**Need More Help?**
+- Discord (fastest): https://discord.com/invite/f3qwvp56be
+- Reddit community: r/DivineTribeVaporizers
+- YouTube tutorials: @divinetribe1
+
+The community is super helpful for tech questions too!
+
+Let me know if this helps or if you need more assistance.
+
+Best,
+Matt
+Divine Tribe

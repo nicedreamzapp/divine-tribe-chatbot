@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Divine Tribe Email Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #16213e;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            color: #facc15;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .email-count {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: #facc15;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #fbbf24;
+        }
+
+        .btn-primary:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Email List */
+        .email-list {
+            width: 400px;
+            background: #1a1a2e;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .email-list-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            background: #16213e;
+        }
+
+        .email-list-header h2 {
+            font-size: 1rem;
+            color: #facc15;
+        }
+
+        .email-item {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .email-item:hover {
+            background: #222;
+        }
+
+        .email-item.selected {
+            background: #1e3a5f;
+        }
+
+        .email-item.unread {
+            border-left: 3px solid #facc15;
+        }
+
+        .email-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: #facc15;
+        }
+
+        .email-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-mark-read {
+            padding: 10px 20px;
+            background: #8b5cf6;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-mark-read:hover {
+            background: #7c3aed;
+        }
+
+        .btn-mark-read:disabled {
+            background: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .selection-count {
+            color: #facc15;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        .email-from {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .email-subject {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-preview {
+            font-size: 0.85rem;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .email-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .category-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            background: #333;
+        }
+
+        .category-badge.order_status { background: #3b82f6; }
+        .category-badge.technical { background: #8b5cf6; }
+        .category-badge.return { background: #ef4444; }
+        .category-badge.product_question { background: #10b981; }
+
+        /* Email Detail / Compose */
+        .email-detail {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a2e;
+        }
+
+        .email-detail-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .email-detail-subject {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .email-detail-meta {
+            display: flex;
+            gap: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .email-detail-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .original-email {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .original-email-header {
+            font-size: 0.9rem;
+            color: #facc15;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        /* Compose Area */
+        .compose-area {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .compose-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .compose-header h3 {
+            color: #facc15;
+        }
+
+        .generate-btn {
+            padding: 8px 15px;
+            background: #8b5cf6;
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .generate-btn:hover {
+            background: #7c3aed;
+        }
+
+        .compose-textarea {
+            width: 100%;
+            min-height: 250px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            color: #eee;
+            font-size: 0.95rem;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.6;
+        }
+
+        .compose-textarea:focus {
+            outline: none;
+            border-color: #facc15;
+        }
+
+        .compose-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-send {
+            background: #facc15;
+            color: #000;
+        }
+
+        .btn-send:hover {
+            background: #fbbf24;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        .btn-save {
+            background: #f59e0b;
+            color: #000;
+        }
+
+        .btn-save:hover {
+            background: #d97706;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #facc15;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Customer History Panel */
+        .customer-panel {
+            width: 300px;
+            background: #16213e;
+            border-left: 1px solid #333;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .customer-panel h3 {
+            color: #facc15;
+            margin-bottom: 15px;
+        }
+
+        .customer-info {
+            margin-bottom: 20px;
+        }
+
+        .customer-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .history-item {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .history-item-subject {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .history-item-date {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #10b981;
+            color: #fff;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Divine Tribe Email Assistant</h1>
+        <div class="header-right">
+            <span class="email-count" id="email-count">Loading...</span>
+            <span class="selection-count" id="selection-count" style="display: none;">0 selected</span>
+            <button id="mark-read-btn" class="btn-mark-read" onclick="markSelectedAsRead()" disabled>
+                Mark as Just Read
+            </button>
+            <button id="refresh-btn" class="btn-primary" onclick="refreshEmails()">Refresh Gmail</button>
+            <a href="/logout" style="margin-left: 15px; color: #888; text-decoration: none; font-size: 0.85rem;">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Email List -->
+        <div class="email-list">
+            <div class="email-list-header">
+                <h2>All Unread Emails</h2>
+            </div>
+            <div id="email-list-content">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Email Detail -->
+        <div class="email-detail" id="email-detail">
+            <div class="empty-state">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <p>Select an email to view</p>
+            </div>
+        </div>
+
+        <!-- Customer History Panel -->
+        <aside class="customer-panel" id="customer-panel" style="display: none;">
+            <h3>Customer History</h3>
+            <div class="customer-info" id="customer-info"></div>
+            <div id="customer-history"></div>
+        </aside>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let emails = [];
+        let selectedEmail = null;
+        let checkedEmails = new Set();  // Track checked emails for "Mark as Just Read"
+
+        // Auto-refresh on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshEmails();
+        });
+
+        function updateSelectionUI() {
+            const count = checkedEmails.size;
+            const countEl = document.getElementById('selection-count');
+            const btn = document.getElementById('mark-read-btn');
+
+            if (count > 0) {
+                countEl.textContent = `${count} selected`;
+                countEl.style.display = 'inline';
+                btn.disabled = false;
+            } else {
+                countEl.style.display = 'none';
+                btn.disabled = true;
+            }
+        }
+
+        function toggleEmailCheck(emailId, event) {
+            event.stopPropagation();  // Don't trigger email selection
+
+            if (checkedEmails.has(emailId)) {
+                checkedEmails.delete(emailId);
+            } else {
+                checkedEmails.add(emailId);
+            }
+            updateSelectionUI();
+        }
+
+        async function markSelectedAsRead() {
+            if (checkedEmails.size === 0) return;
+
+            const btn = document.getElementById('mark-read-btn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const ids = Array.from(checkedEmails);
+
+            try {
+                const res = await fetch('/api/emails/mark-auto-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Marked ${data.count} emails as read. Trained ${data.trained} senders.`);
+
+                    // Remove from local list
+                    emails = emails.filter(e => !checkedEmails.has(e.id));
+                    checkedEmails.clear();
+
+                    // Clear selection if current email was marked
+                    if (selectedEmail && ids.includes(selectedEmail.id)) {
+                        selectedEmail = null;
+                        document.getElementById('email-detail').innerHTML = `
+                            <div class="empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                                <p>Select an email to view</p>
+                            </div>
+                        `;
+                    }
+
+                    renderEmailList();
+                    updateSelectionUI();
+                    document.getElementById('email-count').textContent = `${emails.length} unread emails`;
+                } else {
+                    showToast('Error: ' + (data.error || 'Unknown'), true);
+                }
+            } catch (e) {
+                showToast('Error marking emails', true);
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Mark as Just Read';
+        }
+
+        async function loadEmails() {
+            try {
+                const res = await fetch('/api/emails');
+                emails = await res.json();
+                // Only show unread emails
+                emails = emails.filter(e => e.status === 'unread');
+                renderEmailList();
+                document.getElementById('email-count').textContent = `${emails.length} unread emails`;
+            } catch (e) {
+                console.error('Error loading emails:', e);
+                document.getElementById('email-list-content').innerHTML = '<p style="padding:20px;color:#888;">Error loading emails</p>';
+            }
+        }
+
+        async function refreshEmails() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            document.getElementById('email-count').textContent = 'Syncing with Gmail...';
+
+            try {
+                const res = await fetch('/api/refresh', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`${data.new_emails} new emails loaded`);
+                    await loadEmails();
+                } else {
+                    showToast('Error refreshing: ' + (data.error || 'Unknown'), true);
+                }
+            } catch (e) {
+                showToast('Error: ' + e.message, true);
+            }
+            btn.disabled = false;
+            btn.textContent = 'Refresh Gmail';
+        }
+
+        function renderEmailList() {
+            if (emails.length === 0) {
+                document.getElementById('email-list-content').innerHTML = `
+                    <div class="empty-state">
+                        <p>No unread emails</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = emails.map(email => `
+                <div class="email-item ${email.status} ${selectedEmail?.id === email.id ? 'selected' : ''}">
+                    <input type="checkbox" class="email-checkbox"
+                           ${checkedEmails.has(email.id) ? 'checked' : ''}
+                           onclick="toggleEmailCheck('${email.id}', event)">
+                    <div class="email-content" onclick="selectEmail('${email.id}')">
+                        <div class="email-from">${email.from_name || email.from_email}</div>
+                        <div class="email-subject">${email.subject || '(no subject)'}</div>
+                        <div class="email-preview">${(email.body || '').substring(0, 80)}...</div>
+                        <div class="email-meta">
+                            <span class="category-badge ${email.category}">${email.category || 'general'}</span>
+                            <span>${formatDate(email.received_at)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('email-list-content').innerHTML = html;
+        }
+
+        async function selectEmail(id) {
+            selectedEmail = emails.find(e => e.id === id);
+            if (!selectedEmail) return;
+
+            renderEmailList();
+            renderEmailDetail();
+
+            // Load customer history
+            loadCustomerHistory(selectedEmail.from_email);
+        }
+
+        function renderEmailDetail() {
+            if (!selectedEmail) return;
+
+            const html = `
+                <div class="email-detail-header">
+                    <div class="email-detail-subject">${selectedEmail.subject || '(no subject)'}</div>
+                    <div class="email-detail-meta">
+                        <span>From: ${selectedEmail.from_name || ''} &lt;${selectedEmail.from_email}&gt;</span>
+                        <span>${formatDate(selectedEmail.received_at)}</span>
+                    </div>
+                </div>
+                <div class="email-detail-body">
+                    <div class="original-email">
+                        <div class="original-email-header">Customer Message</div>
+                        ${selectedEmail.body || '(no content)'}
+                    </div>
+
+                    <div class="compose-area">
+                        <div class="compose-header">
+                            <h3>Your Response</h3>
+                            <button class="generate-btn" onclick="generateResponse('${selectedEmail.id}')">
+                                Generate AI Response
+                            </button>
+                        </div>
+                        <textarea class="compose-textarea" id="response-textarea"
+                                  placeholder="Type your response or click 'Generate AI Response'...">${selectedEmail.draft_response || ''}</textarea>
+                        <div class="compose-actions">
+                            <button class="btn btn-send" onclick="copyResponse()">
+                                Copy to Clipboard
+                            </button>
+                            <button class="btn btn-save" onclick="saveForTraining('${selectedEmail.id}')">
+                                Save for Training
+                            </button>
+                        </div>
+                        <p style="font-size: 0.75rem; color: #666; margin-top: 10px;">Save good responses to train the AI. Copy and paste into Gmail to send.</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('email-detail').innerHTML = html;
+        }
+
+        let originalDraft = '';
+
+        async function generateResponse(id) {
+            const btn = document.querySelector('.generate-btn');
+            btn.textContent = 'Generating...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/emails/${id}/generate`, { method: 'POST' });
+                const data = await res.json();
+
+                if (data.draft) {
+                    document.getElementById('response-textarea').value = data.draft;
+                    selectedEmail.draft_response = data.draft;
+                    originalDraft = data.draft;
+
+                    let sources = [];
+                    if (data.used_cag) sources.push('Cache');
+                    if (data.used_rag) sources.push('Products');
+                    if (data.used_woo) sources.push('Orders');
+                    const sourceStr = sources.length ? ` (${sources.join(', ')})` : '';
+
+                    showToast(`AI response generated!${sourceStr}`);
+                } else {
+                    showToast('Could not generate response', true);
+                }
+            } catch (e) {
+                showToast('Error generating response', true);
+            }
+
+            btn.textContent = 'Generate AI Response';
+            btn.disabled = false;
+        }
+
+        function copyResponse() {
+            const response = document.getElementById('response-textarea').value;
+            if (!response.trim()) {
+                showToast('Nothing to copy', true);
+                return;
+            }
+
+            navigator.clipboard.writeText(response).then(() => {
+                showToast('Copied to clipboard! Paste into Gmail to send.');
+            }).catch(() => {
+                const textarea = document.getElementById('response-textarea');
+                textarea.select();
+                document.execCommand('copy');
+                showToast('Copied! Paste into Gmail to send.');
+            });
+        }
+
+        async function saveForTraining(id) {
+            const response = document.getElementById('response-textarea').value;
+            if (!response.trim()) {
+                showToast('Write a response first', true);
+                return;
+            }
+
+            const wasEdited = originalDraft && response !== originalDraft;
+
+            try {
+                const res = await fetch(`/api/emails/${id}/save-training`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        response,
+                        was_edited: wasEdited,
+                        original_draft: originalDraft
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Saved! (${data.total_saved} training examples)`);
+
+                    // Remove from list
+                    emails = emails.filter(e => e.id !== id);
+                    selectedEmail = null;
+                    originalDraft = '';
+                    renderEmailList();
+                    document.getElementById('email-detail').innerHTML = `
+                        <div class="empty-state">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <p>Select an email to view</p>
+                        </div>
+                    `;
+                    document.getElementById('email-count').textContent = `${emails.length} unread emails`;
+                } else {
+                    showToast('Error saving: ' + (data.error || 'Unknown'), true);
+                }
+            } catch (e) {
+                showToast('Error saving for training', true);
+            }
+        }
+
+        async function markDone(id) {
+            const response = document.getElementById('response-textarea').value;
+            const wasEdited = originalDraft && response !== originalDraft;
+
+            try {
+                await fetch(`/api/emails/${id}/done`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ response, was_edited: wasEdited })
+                });
+
+                showToast('Marked as done');
+                // Remove from list
+                emails = emails.filter(e => e.id !== id);
+                selectedEmail = null;
+                originalDraft = '';
+                renderEmailList();
+                document.getElementById('email-detail').innerHTML = `
+                    <div class="empty-state">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <p>Select an email to view</p>
+                    </div>
+                `;
+                document.getElementById('email-count').textContent = `${emails.length} unread emails`;
+            } catch (e) {
+                showToast('Error marking done', true);
+            }
+        }
+
+        async function loadCustomerHistory(email) {
+            try {
+                const res = await fetch(`/api/customer/${encodeURIComponent(email)}`);
+                const history = await res.json();
+
+                document.getElementById('customer-panel').style.display = 'block';
+                document.getElementById('customer-info').innerHTML = `
+                    <p><strong>${email}</strong></p>
+                    <p>${history.length} previous emails</p>
+                `;
+
+                document.getElementById('customer-history').innerHTML = history.map(h => `
+                    <div class="history-item">
+                        <div class="history-item-subject">${h.subject || '(no subject)'}</div>
+                        <div class="history-item-date">${formatDate(h.received_at)}</div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Error loading customer history:', e);
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            setTimeout(() => toast.className = 'toast', 3000);
+        }
+    </script>
+</body>
+</html>

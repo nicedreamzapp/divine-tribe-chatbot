@@ -1,0 +1,13 @@
+Subject: Re: {original_subject}
+
+Hi {first_name},
+
+Thanks for reaching out!
+
+{order_status_details}
+
+If you have any other questions, just let me know!
+
+Best,
+Matt
+Divine Tribe

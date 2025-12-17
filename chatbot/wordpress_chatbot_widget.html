@@ -1,0 +1,513 @@
+<!-- DIVINE TRIBE AI CHATBOT - WordPress Version -->
+<!-- Copy everything below into your WordPress footer -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --accent-aqua: #00FFC6;
+  --accent-violet: #8A2BE2;
+  --glass-bg: rgba(255,255,255,0.08);
+  --panel-dark: rgba(0,0,0,0.45);
+  --panel-border: rgba(255,255,255,0.15);
+  --text-primary: #f5faff;
+  --text-secondary: rgba(255,255,255,0.85);
+  --btn-blue-start: #3b82f6;
+  --btn-blue-end: #2563eb;
+  --btn-pink-start: #ec4899;
+  --btn-pink-end: #db2777;
+  --email-color: var(--accent-aqua);
+}
+#dt-chatbot-widget { position: fixed; right: 30px; bottom: 30px; z-index:99999; width: 420px; max-width: calc(100vw - 40px); }
+#dt-chat-button {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width:66px; height:66px; border-radius:50%;
+  border:none; cursor:pointer;
+  background: radial-gradient(circle at 25% 25%, var(--accent-aqua), var(--accent-violet));
+  box-shadow: 0 24px 60px rgba(10,10,20,0.6), 0 0 30px rgba(0,255,198,0.35);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition: transform .18s ease, box-shadow .18s ease;
+  overflow: hidden;
+  padding: 4px;
+}
+#dt-chat-button:hover{ transform: scale(1.08); box-shadow: 0 30px 80px rgba(10,10,20,0.7), 0 0 48px rgba(138,43,226,0.4); }
+#dt-chat-button .line1 {
+  font-weight: 700;
+  font-size: 9px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  line-height: 1;
+}
+#dt-chat-button .line2 {
+  font-weight: 600;
+  font-size: 7.5px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  line-height: 1;
+  margin-top: 1px;
+}
+#dt-chat-button .pulse {
+  position: absolute;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: rgba(0,255,198,0.3);
+  animation: dtPulse 2s infinite;
+  pointer-events: none;
+}
+@keyframes dtPulse {
+  0% { transform: scale(0.9); opacity: 0.6; }
+  70% { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+#dt-chat-window {
+  display:none;
+  width:100%;
+  height:650px;
+  border-radius:22px;
+  overflow:hidden;
+  position:relative;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.55);
+  border: 1px solid var(--panel-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  flex-direction:column;
+}
+#dt-chat-window.open { display:flex; animation: dtSlideUp .28s ease both; }
+@keyframes dtSlideUp { from{ opacity:0; transform: translateY(18px); } to{ opacity:1; transform: translateY(0);} }
+.dt-chat-header {
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background: linear-gradient(135deg, rgba(0,255,198,0.18), rgba(138,43,226,0.18));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(8px);
+}
+.dt-header-left { display:flex; flex-direction:column; gap:3px; }
+.dt-header-title { font-weight:700; font-size:18px; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+.dt-header-subtitle { font-size:12.5px; color:var(--text-secondary); opacity:0.95; }
+.dt-close-btn {
+  width:40px; height:40px; border-radius:10px;
+  border:none; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+  color:#fff; background: rgba(255,255,255,0.08);
+  transition: transform .18s, background .18s;
+}
+.dt-close-btn:hover { transform: rotate(90deg); background: rgba(255,255,255,0.14); }
+.dt-chat-messages {
+  position:relative;
+  flex:1;
+  overflow:auto;
+  padding:20px;
+  background-image: url('http://ineedhemp.com/wp-content/uploads/2025/09/landing-page-background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  backdrop-filter: blur(18px) brightness(0.75);
+}
+.dt-chat-messages::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.32), rgba(0,0,0,0.48));
+  z-index:0;
+}
+.dt-message { display:flex; margin-bottom:16px; position:relative; z-index:1; animation: dtFadeInUp .22s ease; }
+@keyframes dtFadeInUp { from{ opacity:0; transform: translateY(8px);} to{ opacity:1; transform: translateY(0);} }
+.dt-message.bot { justify-content:flex-start; }
+.dt-message.user { justify-content:flex-end; }
+.dt-message-content {
+  max-width:76%;
+  padding:14px 18px;
+  border-radius:16px;
+  line-height:1.6;
+  font-size:14px;
+  color:var(--text-primary);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.04);
+  background: var(--panel-dark);
+}
+.dt-message.bot .dt-message-content {
+  border-left: 3px solid rgba(0,255,198,0.12);
+  color: var(--text-primary);
+}
+.dt-message.user .dt-message-content {
+  background: linear-gradient(180deg, rgba(0,255,198,0.85), rgba(16,185,129,0.85));
+  color: #07111a;
+  font-weight:600;
+  border: none;
+}
+.dt-message-content a { color: var(--email-color); text-decoration: underline; font-weight:600; }
+.dt-message-content img { width:100%; border-radius:10px; margin-top:10px; display:block; border:2px solid rgba(255,255,255,0.06); cursor:pointer; }
+.dt-typing-indicator {
+  display:none;
+  gap:10px;
+  padding:12px 20px;
+  align-items:center;
+  font-weight:700;
+  color:var(--accent-aqua);
+  background: rgba(0,0,0,0.36);
+  z-index:1;
+}
+.dt-typing-indicator.active { display:flex; }
+.dt-input-container {
+  padding:18px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.28), rgba(255,255,255,0.02));
+  border-top: 1px solid rgba(255,255,255,0.04);
+  display:flex; flex-direction:column; gap:12px;
+}
+.dt-input-wrapper {
+  display:flex; gap:10px; align-items:center;
+  background: rgba(0,0,0,0.28);
+  border-radius:16px; padding:6px; border:2px solid rgba(255,255,255,0.06);
+}
+.dt-input-wrapper:focus-within{ border-color: rgba(0,255,198,0.28); background: rgba(0,0,0,0.34); }
+#dt-universalInput {
+  flex:1;
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--text-primary);
+  padding:12px 10px;
+  font-size:14px;
+  font-family: inherit;
+}
+#dt-universalInput::placeholder { color: rgba(255,255,255,0.65); }
+.dt-button-row { display:flex; gap:10px; }
+.dt-action-btn {
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: transform .15s ease, box-shadow .15s ease;
+  font-family: inherit;
+}
+#dt-chatBtn { background: linear-gradient(135deg, var(--btn-blue-start), var(--btn-blue-end)); }
+#dt-imageBtn { background: linear-gradient(135deg, var(--btn-pink-start), var(--btn-pink-end)); }
+.dt-action-btn:hover { transform: translateY(-3px); }
+.dt-action-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.dt-chat-messages::-webkit-scrollbar { width:8px; }
+.dt-chat-messages::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.12)); border-radius:10px; }
+
+/* Progress bar styles for image generation */
+.dt-progress-container {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.dt-progress-bar {
+  height: 6px;
+  background: linear-gradient(90deg, var(--btn-pink-start), var(--btn-pink-end), var(--accent-aqua));
+  background-size: 200% 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease;
+  animation: dtProgressShimmer 2s linear infinite;
+}
+@keyframes dtProgressShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.dt-progress-text {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  text-align: center;
+  font-weight: 400;
+}
+.dt-progress-wrapper {
+  width: 100%;
+  padding: 4px 0;
+}
+
+@media (max-width:600px){
+  #dt-chatbot-widget{ right: 14px; left:14px; bottom:18px; width: calc(100% - 28px); }
+  #dt-chat-window{ height: 72vh; width:100%; border-radius:18px; }
+  #dt-chat-button{ right: 14px; bottom: 14px; position:fixed; }
+}
+</style>
+
+<div id="dt-chatbot-widget" aria-live="polite">
+  <button id="dt-chat-button" aria-label="Open Divine Tribe AI Chat & Image Generator">
+    <div class="pulse"></div>
+    <div class="line1">AI CHAT</div>
+    <div class="line2">IMAGE GEN</div>
+  </button>
+  <div id="dt-chat-window" role="dialog" aria-modal="false" aria-label="Divine Tribe Chat">
+    <div class="dt-chat-header">
+      <div class="dt-header-left">
+        <div class="dt-header-title">Divine Tribe AI</div>
+        <div class="dt-header-subtitle">60% Accurate — 100% Confident</div>
+      </div>
+      <button class="dt-close-btn" id="dt-closeChat" aria-label="Close chat">✕</button>
+    </div>
+    <div class="dt-chat-messages" id="dt-chatMessages">
+      <div class="dt-message bot" id="dt-welcomeMsg">
+        <div class="dt-message-content">
+          <strong>Welcome, traveler of the Tribe!</strong>
+          <p>I'm your digital helper, powered by curiosity and caffeine.</p>
+          <p>I can assist with:<br>• Product recommendations<br>• Custom AI artwork generation</p>
+          <p>If I go off the rails, the human hero Matt is at <a href="mailto:matt@ineedhemp.com">matt@ineedhemp.com</a>.</p>
+          <em>Type your question or art idea below — and let's make something divine.</em>
+        </div>
+      </div>
+    </div>
+    <div class="dt-typing-indicator" id="dt-typingIndicator" role="status" aria-hidden="true">
+      <span>Processing...</span>
+    </div>
+    <div class="dt-input-container">
+      <div class="dt-input-wrapper" role="search">
+        <input id="dt-universalInput" autocomplete="off" placeholder="Ask about products or describe a wild art idea..." aria-label="Message input"/>
+      </div>
+      <div class="dt-button-row">
+        <button class="dt-action-btn" id="dt-chatBtn" title="Ask question">Ask Question</button>
+        <button class="dt-action-btn" id="dt-imageBtn" title="Generate art">Generate Art</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const CHATBOT_API_URL = 'https://chat.marijuanaunion.com/chat';
+  const IMAGE_API_URL = 'https://chat.marijuanaunion.com/generate_image';
+  const POLL_RESPONSE_URL = 'https://chat.marijuanaunion.com';
+
+  // Image generation timeout: 5 minutes (300000ms) - will never timeout during normal generation
+  const IMAGE_TIMEOUT_MS = 300000;
+  const ESTIMATED_IMAGE_TIME = 70; // seconds - for progress bar estimate
+
+  let sessionId = sessionStorage.getItem('chatbot_session_id');
+  if (!sessionId) {
+    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2,11);
+    sessionStorage.setItem('chatbot_session_id', sessionId);
+  }
+
+  const launcher = document.getElementById('dt-chat-button');
+  const chatWindow = document.getElementById('dt-chat-window');
+  const closeChat = document.getElementById('dt-closeChat');
+  const universalInput = document.getElementById('dt-universalInput');
+  const chatBtn = document.getElementById('dt-chatBtn');
+  const imageBtn = document.getElementById('dt-imageBtn');
+  const chatMessages = document.getElementById('dt-chatMessages');
+  const typingIndicator = document.getElementById('dt-typingIndicator');
+
+  let pollingInterval = null;
+  let waitingForHumanResponse = false;
+  let currentMessageId = null;
+
+  if (chatWindow) chatWindow.classList.remove('open');
+  if (launcher) launcher.style.display = '';
+
+  if (launcher && chatWindow && universalInput) {
+    launcher.addEventListener('click', function() {
+      chatWindow.classList.add('open');
+      launcher.style.display = 'none';
+      setTimeout(function() { universalInput.focus(); }, 120);
+    });
+  }
+
+  if (closeChat && chatWindow && launcher) {
+    closeChat.addEventListener('click', function() {
+      chatWindow.classList.remove('open');
+      launcher.style.display = '';
+    });
+  }
+
+  // Chat button handler
+  if (chatBtn && universalInput && typingIndicator) {
+    chatBtn.addEventListener('click', async function() {
+      const message = universalInput.value.trim();
+      if (!message) return;
+      addMessage(message, 'user');
+      universalInput.value = '';
+      chatBtn.disabled = imageBtn.disabled = true;
+      typingIndicator.classList.add('active');
+      try {
+        const response = await fetch(CHATBOT_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ message: message, session_id: sessionId })
+        });
+        const data = await response.json();
+        typingIndicator.classList.remove('active');
+        if (data.message_id) currentMessageId = data.message_id;
+        if (data.response && data.response.includes('One moment')) {
+          waitingForHumanResponse = true;
+          const tempId = 'msg-' + Date.now();
+          addMessage(data.response, 'bot', tempId);
+          pollingInterval = setInterval(function() { pollForHumanResponse(tempId); }, 2000);
+        } else {
+          addMessage(data.response || 'No response from server.', 'bot');
+        }
+      } catch (err) {
+        typingIndicator.classList.remove('active');
+        addMessage('Connection error. Please try again!', 'bot');
+      } finally {
+        chatBtn.disabled = imageBtn.disabled = false;
+      }
+    });
+  }
+
+  // Image generation button handler - WITH PROGRESS BAR AND NO TIMEOUT
+  if (imageBtn && universalInput && typingIndicator) {
+    imageBtn.addEventListener('click', async function() {
+      const prompt = universalInput.value.trim();
+      if (!prompt) return;
+      addMessage('Creating: "' + escapeHtml(prompt) + '"', 'user');
+      universalInput.value = '';
+      chatBtn.disabled = imageBtn.disabled = true;
+
+      // Initialize progress tracking
+      let elapsed = 0;
+
+      // Create progress bar UI
+      typingIndicator.innerHTML = `
+        <div class="dt-progress-wrapper">
+          <span style="display:block; margin-bottom:8px;">Generating your masterpiece...</span>
+          <div class="dt-progress-container">
+            <div class="dt-progress-bar" id="dt-progress-bar" style="width: 0%"></div>
+          </div>
+          <div class="dt-progress-text" id="dt-progress-text">0s / ~${ESTIMATED_IMAGE_TIME}s estimated</div>
+        </div>
+      `;
+      typingIndicator.classList.add('active');
+
+      // Progress timer - updates every second
+      const progressInterval = setInterval(function() {
+        elapsed++;
+        const progressBar = document.getElementById('dt-progress-bar');
+        const progressText = document.getElementById('dt-progress-text');
+        if (progressBar && progressText) {
+          // Cap visual progress at 95% until actually complete
+          const percent = Math.min(95, (elapsed / ESTIMATED_IMAGE_TIME) * 100);
+          progressBar.style.width = percent + '%';
+
+          if (elapsed < ESTIMATED_IMAGE_TIME) {
+            progressText.textContent = elapsed + 's / ~' + ESTIMATED_IMAGE_TIME + 's estimated';
+          } else if (elapsed < 120) {
+            progressText.textContent = elapsed + 's - Almost done, please wait...';
+          } else if (elapsed < 180) {
+            progressText.textContent = elapsed + 's - Still working, complex images take longer...';
+          } else {
+            progressText.textContent = elapsed + 's - Hang tight, your art is being crafted...';
+          }
+        }
+      }, 1000);
+
+      try {
+        // Use AbortController with 5-minute timeout (effectively no timeout for normal use)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), IMAGE_TIMEOUT_MS);
+
+        const response = await fetch(IMAGE_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ prompt: prompt }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        clearInterval(progressInterval);
+
+        const data = await response.json();
+
+        if (data && data.image_data) {
+          const imgHtml = '<strong>Your artwork is ready!</strong><br><img src="data:image/png;base64,' + data.image_data + '" alt="generated artwork" onclick="window.open(this.src,\'_blank\')" title="Click to view full size">';
+          addMessage(imgHtml, 'bot');
+        } else if (data && data.error) {
+          addMessage('Image generation issue: ' + data.error + '. Please try again!', 'bot');
+        } else {
+          addMessage('Image generation failed. Please try again!', 'bot');
+        }
+      } catch (err) {
+        clearInterval(progressInterval);
+        if (err.name === 'AbortError') {
+          addMessage('Image generation timed out after 5 minutes. The server may be very busy - please try again later!', 'bot');
+        } else {
+          addMessage('Connection error: ' + err.message + '. Please check your connection and try again!', 'bot');
+        }
+      } finally {
+        typingIndicator.classList.remove('active');
+        typingIndicator.innerHTML = '<span>Processing...</span>';
+        chatBtn.disabled = imageBtn.disabled = false;
+      }
+    });
+  }
+
+  async function pollForHumanResponse(messageId) {
+    if (!waitingForHumanResponse || !currentMessageId) return;
+    try {
+      const res = await fetch(POLL_RESPONSE_URL + '/get_human_response?message_id=' + encodeURIComponent(currentMessageId) + '&t=' + Date.now());
+      const data = await res.json();
+      if (data && data.has_response && data.response) {
+        clearInterval(pollingInterval);
+        waitingForHumanResponse = false;
+        currentMessageId = null;
+        const el = document.getElementById(messageId);
+        if (el) el.querySelector('.dt-message-content').innerHTML = data.response;
+      }
+    } catch (err) {
+      console.debug('Polling error', err);
+    }
+  }
+
+  function addMessage(text, sender, messageId) {
+    if (!chatMessages) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dt-message ' + sender;
+    if (messageId) wrapper.id = messageId;
+    const content = document.createElement('div');
+    content.className = 'dt-message-content';
+    content.innerHTML = sanitizeHtml(text);
+    wrapper.appendChild(content);
+    chatMessages.appendChild(wrapper);
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+  }
+
+  function sanitizeHtml(input){
+    if (/<\/?[a-z][\s\S]*>/i.test(input)) return input;
+    return escapeHtml(input);
+  }
+
+  function escapeHtml(str){
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(str).replace(/[&<>"']/g, function(m){ return map[m]; });
+  }
+
+  if (universalInput && chatBtn && imageBtn) {
+    universalInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        if (e.shiftKey) imageBtn.click();
+        else chatBtn.click();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && chatWindow && launcher) {
+      chatWindow.classList.remove('open');
+      launcher.style.display = '';
+    }
+  });
+
+  window.__divineTribe = { addMessage: addMessage, sessionId: sessionId };
+})();
+</script>
+<!-- END DIVINE TRIBE AI CHATBOT -->

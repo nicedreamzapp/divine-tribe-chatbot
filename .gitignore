@@ -1,0 +1,77 @@
+# =============================================================================
+# DIVINE TRIBE - GITIGNORE
+# Keep passwords, logs, IPs, and credentials PRIVATE
+# =============================================================================
+
+# ----- CREDENTIALS & SECRETS -----
+.env
+.env.*
+*.env
+credentials/
+credentials.json
+token.json
+client_secret*.json
+*.pem
+*.key
+secrets/
+
+# ----- LOGS & CONVERSATION DATA -----
+# (Contains customer info, IPs, private conversations)
+*.log
+logs/
+email_logs/
+data/conversation_logs/
+conversation_logs/
+human_responses/
+*.jsonl
+
+# ----- DATABASE FILES -----
+*.db
+*.sqlite
+*.sqlite3
+email_history.db
+
+# ----- TRAINING DATA (may contain customer data) -----
+training_responses.json
+auto_read_training.json
+
+# ----- CACHE & EMBEDDINGS -----
+*.pkl
+*.pickle
+__pycache__/
+*.pyc
+*.pyo
+.cache/
+*.cache
+
+# ----- VIRTUAL ENVIRONMENT -----
+venv/
+.venv/
+env/
+.env/
+
+# ----- IDE & OS FILES -----
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Icon
+Thumbs.db
+
+# ----- BUILD & TEMP -----
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+temp/
+tmp/
+
+# ----- CLAUDE CODE -----
+.claude/
+
+# ----- SPECIFIC PRIVATE FILES -----
+# Add any specific files with IPs or sensitive info here
+*.bak
+*.backup
