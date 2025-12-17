@@ -22,6 +22,7 @@ from modules.agent_router import AgentRouter
 from modules.order_verify import handle_order_inquiry, get_safe_order_info, format_order_response
 from modules.cag_cache import CAGCache
 from modules.product_database import ProductDatabase
+from modules.conversation_logger import ConversationLogger
 
 # Try to import context manager
 try:
@@ -68,6 +69,10 @@ cag_cache = CAGCache()
 print("Initializing agent router...")
 router = AgentRouter(cag_cache, database, context_manager)
 print("✅ Agent router ready")
+
+print("Initializing conversation logger...")
+conversation_logger = ConversationLogger(log_dir='conversation_logs')
+print("✅ Conversation logger ready (Discord chats will be saved)")
 
 # Store pending order verifications per user
 pending_verifications = {}  # user_id -> challenge dict
@@ -195,10 +200,11 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-async def process_query(user_id, query):
+async def process_query(user_id, query, username="discord_user"):
     """
     Process a user query through the agent router.
     Returns (response, is_order_related) tuple.
+    Logs all conversations for learning/improvement.
     """
 
     # Build context with any pending verification
@@ -238,6 +244,23 @@ async def process_query(user_id, query):
 
     # For other routes, just return the response (not private)
     response = result.get('data', "I'm not sure how to help with that. Try asking about Divine Tribe products, order status, or troubleshooting!")
+
+    # Log conversation for learning (but not order details for privacy)
+    try:
+        session_id = f"discord_{user_id}"
+        # Don't log actual order data, just that it was an order query
+        log_response = "[ORDER INFO REDACTED]" if is_order_related else response
+        conversation_logger.log_conversation(
+            session_id=session_id,
+            user_message=query,
+            bot_response=log_response,
+            products_shown=[],
+            intent=route,
+            confidence=1.0
+        )
+    except Exception as e:
+        logger.warning(f"Failed to log conversation: {e}")
+
     return response, is_order_related
 
 # =============================================================================
