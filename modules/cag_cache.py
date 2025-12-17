@@ -340,29 +340,20 @@ We recommend the **Core XL Deluxe** instead - it's our newest model!
             },
             'product_prices': {
                 'keywords': ['price', 'how much', 'cost', 'pricing', 'how much does', 'what does cost'],
-                'answer': """💰 **Divine Tribe Product Pricing:**
+                'answer': """💰 **Divine Tribe Pricing**
 
-**Core eRigs:**
-- Core 2.0: $131-$175
-- XL Deluxe Core: $165-$185
-- Recycler Top Core XL: $185+
+Prices vary based on options, accessories, and promotions. **Check the product page for current pricing!**
 
-**V5 Atomizers:**
-- V5 (atomizer only): $68.50-$129.50
-- V5 + Pico Plus Kit: ~$130-$150
-
-**Nice Dreamz:**
-- Fogger (Stainless): $220-$260
-
-**Mods/Batteries:**
-- iStick Pico Plus 75W: $72.99
-
-**Note:** Prices vary based on options/accessories selected.
+**Our main products:**
+- **[Core XL Deluxe](https://ineedhemp.com/product/xl-deluxe-core-erig)** - All-in-one eRig, easiest for beginners
+- **[V5 XL](https://ineedhemp.com/product/divine-crossing-v5-rebuildable-concentrate-heater)** - Rebuildable atomizer, best flavor
+- **[Nice Dreamz Fogger](https://ineedhemp.com/product/nice-dreamz-fogger)** - Forced-air eRig
+- **[Hemp Clothing](https://ineedhemp.com/product-category/front-page/)** - T-shirts, hoodies, boxers
 
 🏷️ Use code **thankyou10** for 10% off!
 🚚 Free US shipping on all orders
 
-👉 Shop: https://ineedhemp.com
+👉 Shop all: https://ineedhemp.com
 📧 Questions? matt@ineedhemp.com"""
             },
             'best_core': {
