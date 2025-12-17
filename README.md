@@ -140,7 +140,7 @@ This didn't happen overnight. Here's the journey:
 │  📅 THE JOURNEY                                                            │
 │                                                                            │
 │  ┌─────────┐                                                               │
-│  │ Nov '24 │  v1: MISTRAL LOCAL                                           │
+│  │ Nov '25 │  v1: MISTRAL LOCAL                                           │
 │  └────┬────┘  └─▶ Ran Mistral 7B on local hardware                        │
 │       │           Fast responses, but 4k context = goldfish memory        │
 │       │           Hallucinated products that didn't exist                 │
@@ -148,7 +148,7 @@ This didn't happen overnight. Here's the journey:
 │       │                                                                    │
 │       ▼                                                                    │
 │  ┌─────────┐                                                               │
-│  │ Nov '24 │  v2: CLAUDE API                                              │
+│  │ Nov '25 │  v2: CLAUDE API                                              │
 │  └────┬────┘  └─▶ Switched to Claude 3.5 Haiku                            │
 │       │           200k context = remembers full conversations             │
 │       │           Actually reads product descriptions                     │
@@ -156,7 +156,7 @@ This didn't happen overnight. Here's the journey:
 │       │                                                                    │
 │       ▼                                                                    │
 │  ┌─────────┐                                                               │
-│  │ Dec '24 │  v3: RAG + CAG HYBRID                                        │
+│  │ Dec '25 │  v3: RAG + CAG HYBRID                                        │
 │  └────┬────┘  └─▶ Built intelligent retrieval system                      │
 │       │           RAG: Semantic search across 143 products                │
 │       │           CAG: Instant cached answers for common questions        │
@@ -164,7 +164,7 @@ This didn't happen overnight. Here's the journey:
 │       │                                                                    │
 │       ▼                                                                    │
 │  ┌─────────┐                                                               │
-│  │ Dec '24 │  v4: MULTI-PLATFORM + FLUX  ◀── YOU ARE HERE                 │
+│  │ Dec '25 │  v4: MULTI-PLATFORM + FLUX  ◀── YOU ARE HERE                 │
 │  └─────────┘  └─▶ Same brain, three platforms                             │
 │                   Website chat + Discord bot + Email assistant            │
 │                   Added FLUX image generation (local, unfiltered)         │
