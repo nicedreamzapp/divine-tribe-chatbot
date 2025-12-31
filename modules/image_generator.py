@@ -1,5 +1,6 @@
 """
 Image Generation Module using FLUX workflow format
+With improved tunnel detection and fast-fail for better reliability
 """
 
 import json
@@ -162,33 +163,148 @@ class ImageGenerator:
     def check_comfyui_running(self):
         """Check if ComfyUI server is running"""
         try:
-            urllib.request.urlopen(f"http://{self.server_address}/", timeout=2)
+            urllib.request.urlopen(f"http://{self.server_address}/", timeout=3)
             return True
-        except:
+        except Exception as e:
             return False
-    
+
     def wait_for_image(self, prompt_id, timeout=120):
-        """Wait for ComfyUI to finish generating (default 2 min timeout)"""
+        """
+        Wait for ComfyUI to finish generating.
+        IMPROVED: Fail fast if tunnel appears to be down (consecutive connection errors)
+        """
         start_time = time.time()
+        consecutive_errors = 0
+        max_consecutive_errors = 5  # Fail fast after 5 consecutive connection errors
+
         while time.time() - start_time < timeout:
             try:
                 req = urllib.request.Request(f"http://{self.server_address}/history/{prompt_id}")
-                response = urllib.request.urlopen(req)
+                response = urllib.request.urlopen(req, timeout=5)
                 history = json.loads(response.read())
+
+                # Reset error counter on successful connection
+                consecutive_errors = 0
 
                 if prompt_id in history:
                     if history[prompt_id].get('outputs'):
                         return True
 
-            except:
-                pass
+            except urllib.error.URLError as e:
+                consecutive_errors += 1
+                print(f"Fetch attempt error: {e.reason}")
+
+                # Fast-fail if tunnel appears to be down
+                if consecutive_errors >= max_consecutive_errors:
+                    print(f"❌ Connection appears to be down ({consecutive_errors} consecutive errors)")
+                    return False
+
+            except Exception as e:
+                consecutive_errors += 1
+                print(f"Fetch error: {e}")
+
+                if consecutive_errors >= max_consecutive_errors:
+                    print(f"❌ Too many errors ({consecutive_errors}), giving up")
+                    return False
+
             time.sleep(2)
         return False
+
+    def wait_and_fetch_image(self, prompt_id, timeout=120):
+        """
+        Wait for ComfyUI to finish generating, then fetch the image via API.
+        This works over network tunnels - doesn't require filesystem access.
+        """
+        start_time = time.time()
+        consecutive_errors = 0
+        max_consecutive_errors = 10  # More tolerant for network hiccups
+
+        while time.time() - start_time < timeout:
+            try:
+                req = urllib.request.Request(f"http://{self.server_address}/history/{prompt_id}")
+                response = urllib.request.urlopen(req, timeout=10)
+                history = json.loads(response.read())
+
+                # Reset error counter on successful connection
+                consecutive_errors = 0
+
+                if prompt_id in history:
+                    outputs = history[prompt_id].get('outputs', {})
+                    if outputs:
+                        # Find the SaveImage node output (usually node "9")
+                        for node_id, node_output in outputs.items():
+                            if 'images' in node_output:
+                                for img_info in node_output['images']:
+                                    filename = img_info.get('filename')
+                                    subfolder = img_info.get('subfolder', '')
+                                    img_type = img_info.get('type', 'output')
+
+                                    if filename:
+                                        # Fetch the image via /view endpoint
+                                        img_data = self._fetch_image_from_api(filename, subfolder, img_type)
+                                        if img_data:
+                                            return img_data
+
+                        # If we got outputs but no images, something went wrong
+                        print("⚠️ Generation completed but no images found in output")
+                        return None
+
+            except urllib.error.URLError as e:
+                consecutive_errors += 1
+                if consecutive_errors % 3 == 0:  # Log every 3rd error to reduce spam
+                    print(f"Fetch attempt error: {e.reason}")
+
+                # More tolerant - only fail after more errors over longer period
+                if consecutive_errors >= max_consecutive_errors:
+                    elapsed = time.time() - start_time
+                    if elapsed > 30:  # Only give up if we've tried for 30+ seconds
+                        print(f"❌ Tunnel appears down ({consecutive_errors} errors over {elapsed:.0f}s)")
+                        return None
+
+            except Exception as e:
+                consecutive_errors += 1
+                print(f"Fetch error: {e}")
+
+                if consecutive_errors >= max_consecutive_errors:
+                    return None
+
+            time.sleep(2)
+
+        print(f"❌ Timeout after {timeout}s waiting for image")
+        return None
+
+    def _fetch_image_from_api(self, filename, subfolder, img_type):
+        """Fetch image data from ComfyUI's /view endpoint"""
+        try:
+            import urllib.parse
+            params = urllib.parse.urlencode({
+                'filename': filename,
+                'subfolder': subfolder,
+                'type': img_type
+            })
+            url = f"http://{self.server_address}/view?{params}"
+
+            req = urllib.request.Request(url)
+            response = urllib.request.urlopen(req, timeout=30)
+            img_bytes = response.read()
+
+            if img_bytes and len(img_bytes) > 1000:  # Sanity check - image should be >1KB
+                img_base64 = base64.b64encode(img_bytes).decode()
+                print(f"✅ Fetched image via API: {filename} ({len(img_bytes)} bytes)")
+                return img_base64
+            else:
+                print(f"⚠️ Image too small or empty: {len(img_bytes) if img_bytes else 0} bytes")
+                return None
+
+        except Exception as e:
+            print(f"❌ Failed to fetch image {filename}: {e}")
+            return None
 
     def _wait_for_warmup(self, prompt_id, timeout=90):
         """Wait for warmup with progress bar"""
         start_time = time.time()
         check_interval = 1  # Check every second
+        consecutive_errors = 0
 
         while time.time() - start_time < timeout:
             elapsed = time.time() - start_time
@@ -205,8 +321,9 @@ class ImageGenerator:
 
             try:
                 req = urllib.request.Request(f"http://{self.server_address}/history/{prompt_id}")
-                response = urllib.request.urlopen(req)
+                response = urllib.request.urlopen(req, timeout=5)
                 history = json.loads(response.read())
+                consecutive_errors = 0
 
                 if prompt_id in history:
                     if history[prompt_id].get('outputs'):
@@ -215,17 +332,28 @@ class ImageGenerator:
                         return True
 
             except:
+                consecutive_errors += 1
+                if consecutive_errors >= 10:
+                    return False
                 pass
             time.sleep(check_interval)
 
         return False
 
     def generate_for_chatbot(self, prompt):
-        """Generate image using proper FLUX workflow with separate VAE loader"""
-        
+        """
+        Generate image using proper FLUX workflow with separate VAE loader.
+        IMPROVED: Better error handling and connection detection.
+        """
+
+        # Quick connectivity check before we start
+        if not self.check_comfyui_running():
+            print("❌ ComfyUI not responding")
+            return {'has_image': False, 'error': 'Image generator offline - please try again in a moment'}
+
         # Use unique filename for each generation
         filename_prefix = f"divtribe_{str(uuid.uuid4())[:8]}"
-        
+
         workflow = {
             "3": {
                 "inputs": {
@@ -306,40 +434,35 @@ class ImageGenerator:
                 "class_type": "SaveImage"
             }
         }
-        
+
         try:
-            # Submit prompt
+            # Submit prompt with timeout
             prompt_data = json.dumps({"prompt": workflow}).encode('utf-8')
             req = urllib.request.Request(
                 f"http://{self.server_address}/api/prompt",
                 data=prompt_data,
                 headers={'Content-Type': 'application/json'}
             )
-            
-            response = urllib.request.urlopen(req)
+
+            response = urllib.request.urlopen(req, timeout=10)
             result = json.loads(response.read())
             prompt_id = result.get('prompt_id')
-            
-            # Wait for generation to complete
-            if prompt_id and self.wait_for_image(prompt_id):
-                # Look for the generated image
-                output_dir = "/Users/matthewmacosko/Desktop/Divine Tribe Email Assistant/ComfyUI/output"
-                pattern = f"{output_dir}/{filename_prefix}*.png"
-                
-                # Give it a moment for file to be written
-                time.sleep(2)
-                
-                images = glob.glob(pattern)
-                if images:
-                    with open(images[0], 'rb') as f:
-                        img_base64 = base64.b64encode(f.read()).decode()
-                    
-                    # Clean up - delete the image after encoding
-                    os.remove(images[0])
-                    
-                    return {'has_image': True, 'image_data': img_base64}
-                
+
+            if not prompt_id:
+                print("❌ No prompt_id received from ComfyUI")
+                return {'has_image': False, 'error': 'Failed to submit to image generator'}
+
+            # Wait for generation to complete and fetch image via API
+            image_data = self.wait_and_fetch_image(prompt_id)
+            if image_data:
+                return {'has_image': True, 'image_data': image_data}
+
+            print("❌ Image generation failed or timed out")
+            return {'has_image': False, 'error': 'Generation timed out - please try again'}
+
+        except urllib.error.URLError as e:
+            print(f"Connection error: {e.reason}")
+            return {'has_image': False, 'error': 'Image generator connection lost - please try again'}
         except Exception as e:
             print(f"Generation error: {e}")
-            
-        return {'has_image': False}
+            return {'has_image': False, 'error': str(e)}
