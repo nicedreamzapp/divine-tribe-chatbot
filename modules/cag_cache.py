@@ -153,7 +153,7 @@ The controller provides precise temperature control for the best vaping experien
 📧 Questions? Email matt@ineedhemp.com"""
             },
             'coil_compatibility': {
-                'keywords': ['nice dreamz atomizer', 'fogger atomizer', 'core atomizer', 'nice dreamz on core', 'atomizer work on', 'atomizer fit', 'coil compatible', 'coils compatible', 'work on the core', 'fit on the core', 'same coils', 'interchangeable', 'coil work'],
+                'keywords': ['nice dreamz atomizer', 'fogger atomizer', 'core atomizer', 'nice dreamz on core', 'atomizer work on', 'atomizer fit', 'coil compatible', 'coils compatible', 'coil compatibility', 'work on the core', 'fit on the core', 'same coils', 'interchangeable', 'coil work'],
                 'answer': """🔄 **Coil Compatibility:**
 
 Yes! **All Core bases and Nice Dreamz Fogger share the same coil system** - they're fully interchangeable!
@@ -357,7 +357,7 @@ Prices vary based on options, accessories, and promotions. **Check the product p
 📧 Questions? matt@ineedhemp.com"""
             },
             'best_core': {
-                'keywords': ['best core', 'which core', 'what core', 'core to buy', 'core should i get', 'core should i buy', 'recommend core', 'core recommendation', 'best erig', 'which erig', 'erig to buy', 'erig should i', 'core is best', 'core is the best', 'buy a core', 'buy the core', 'get a core', 'get the core', 'looking at core', 'looking for core', 'want a core', 'want the core'],
+                'keywords': ['best core', 'which core', 'what core', 'core to buy', 'core should i get', 'core should i buy', 'recommend core', 'core recommendation', 'best erig', 'which erig', 'erig to buy', 'erig should i', 'core is best', 'core is the best', 'buy a core', 'buy the core', 'get a core', 'get the core', 'looking at core', 'looking for core', 'want a core', 'want the core', 'core deluxe or 2', 'deluxe or 2.0', 'deluxe or 2.1', '2.0 or deluxe', '2.1 or deluxe', 'core 2.0 or', 'core 2.1 or', 'or core 2.0', 'or core 2.1', 'better core', 'which is better core'],
                 'answer': """**Best Core eRig: XL Deluxe Core**
 
 The **[XL Deluxe Core eRig Kit](https://ineedhemp.com/product/xl-deluxe-core-erig)** is our top recommendation!
@@ -416,6 +416,73 @@ We have a variety of glass tops specifically designed for the Core series - they
 **Note:** Hydratube = Bubbler = Water attachment - they're all the same thing!
 
 📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'help_me_choose': {
+                'keywords': ['help me choose', 'help me pick', 'which vape', 'which one should', 'what should i get', 'what should i buy', 'recommend', 'recommendation', 'not sure which', 'which is best for me', 'best for beginner', 'new to vaping', 'first vape', 'getting started'],
+                'answer': """**Let me help you find the perfect vape!**
+
+First question: **What do you want to vaporize?**
+
+🍯 **Concentrates** (wax, shatter, rosin, etc.)
+→ Check out our **Core XL Deluxe** (easiest) or **V5** (most control)
+
+🌿 **Dry Herb** (flower)
+→ The **Ruby Twist** is taking over the dry herb community!
+
+**Tell me which one** and I'll give you the best recommendation for your needs and budget!
+
+📧 Or email matt@ineedhemp.com for personalized help"""
+            },
+            'rebuildable_philosophy': {
+                'keywords': ['rebuildable', 'sealed', 'why divine tribe', 'why dt', 'long term', 'long-term', 'cost over time', 'save money', 'worth it', 'better value', 'last longer', 'designed to last', 'disposable', 'replacement', 'right to repair', 'repair', 'maintain', 'maintenance friendly'],
+                'answer': """**Why Rebuildable Vapes Are the Better Value**
+
+Most vapes on the market are **sealed devices** - when something breaks or wears out, you buy a whole new device. That's by design.
+
+**Divine Tribe is different.**
+
+Our vapes are **rebuildable and repairable:**
+- 🔧 **Replaceable parts** - Swap a $15-30 cup instead of buying a new $200+ device
+- 🛠️ **User-serviceable** - You can maintain and repair it yourself
+- 📦 **Parts always available** - We stock replacement components
+- ♻️ **Less waste** - One device can last years with simple maintenance
+
+**The Real Cost Over Time:**
+- Sealed device: $300 now + $300 in 2 years when it dies = $600+
+- Divine Tribe: $150-180 + $50 in replacement parts over years = ~$200
+
+**It's not just about saving money** - it's about owning something you can actually take care of. When you know how your device works and can maintain it yourself, you get a better experience.
+
+Our community on Reddit and Discord loves helping people learn to maintain their gear. That's the Divine Tribe difference.
+
+📧 Questions? Email matt@ineedhemp.com"""
+            },
+            'concentrate_budget': {
+                'keywords': ['around $', 'under $', 'budget', '$100', '$150', '$200', 'price range', 'affordable', 'cheap', 'inexpensive', 'good deal', 'for concentrates', 'concentrate vape', 'dab vape', 'wax vape'],
+                'answer': """**Best Concentrate Vaporizers by Budget:**
+
+💰 **Under $100:**
+- **V5 Atomizer** (~$35) - Just the atomizer, needs a mod
+- Great if you already have a box mod!
+
+💰 **$100-$150:**
+- **V5 + Pico Mod Bundle** (~$100-120) - Best value combo
+- Most control, rebuildable, amazing flavor
+
+💰 **$150-$200:**
+- **[Core XL Deluxe](https://ineedhemp.com/product/xl-deluxe-core-erig)** (~$180) ⭐ **TOP PICK**
+- All-in-one, no mod needed, 6 heat settings
+- Perfect for beginners AND experienced users
+
+💰 **$200+:**
+- **[Nice Dreamz Fogger](https://ineedhemp.com/product/nice-dreamz-fogger)** (~$250)
+- Forced-air delivery, premium experience
+
+**My Recommendation:** The **Core XL Deluxe** is the sweet spot - easiest to use, great performance, built to last.
+
+🏷️ Use code **thankyou10** for 10% off!
+
+📧 Questions? Email matt@ineedhemp.com"""
             }
             # NOTE: Hemp t-shirt comparisons go through RAG for accuracy
         }
@@ -462,7 +529,7 @@ Matt will get the correct item shipped to you ASAP!
             },
             'missing_item': {
                 'keywords': ['missing item', 'missing part', 'incomplete order', 'not all items',
-                            'package missing', 'missing from order', 'didnt receive'],
+                            'package missing', 'missing from order', 'missing from my order', 'didnt receive', 'did not receive'],
                 'answer': """📦 **Missing something from your order?**
 
 Let's get that sorted!
@@ -596,24 +663,28 @@ Matt will verify and ship the missing item right away!
 - **Founded by**: Matt Macosko
 - **Location**: Humboldt County, California
 - **Specializes in**: Cannabis vaporizers (concentrates & dry herb)
-- **Philosophy**: Clean flavor, rebuildable technology, direct pricing
 
-**Product Lines:**
-- 🔥 Concentrate Vaporizers: V5, V5 XL atomizers, Core eRig
-- 🌿 Dry Herb: Ruby Twist ball vape, Gen 2 DC
-- 👕 Hemp Clothing: T-shirts, hoodies, boxers
-- 🏺 Accessories: Storage jars, glass bubblers, carb caps
+**Our Philosophy: Built to Last, Not to Replace**
+
+Most vapes are sealed devices - when they break, you buy a new one. That's not us.
+
+Divine Tribe vapes are **rebuildable and repairable**. Swap a $15 cup instead of buying a whole new device. Our parts are always in stock, and our community helps you learn to maintain your gear.
 
 **Why Divine Tribe:**
-✅ Made in USA / Quality materials
-✅ Rebuildable = Save money long-term
-✅ Direct pricing (no middleman markup)
-✅ Excellent customer service
-✅ Eco-friendly practices
-✅ Wholesale options available
+✅ **Rebuildable** = Save money long-term (replace parts, not devices)
+✅ **Direct pricing** = No middleman markup
+✅ **Matt responds personally** = Real customer service
+✅ **14k+ Reddit community** = Help when you need it
+✅ **Quality materials** = Built to last years
+
+**Product Lines:**
+- 🔥 Concentrate Vaporizers: Core XL Deluxe, V5, V5 XL
+- 🌿 Dry Herb: Ruby Twist ball vape
+- 👕 Hemp Clothing: T-shirts, hoodies, boxers
+- 🏺 Accessories: Glass, carb caps, replacement parts
 
 **Community:**
-- 💬 **[Reddit](https://www.reddit.com/r/DivineTribeVaporizers/)**
+- 💬 **[Reddit](https://www.reddit.com/r/DivineTribeVaporizers/)** (14k+ members)
 - 🎮 **[Discord](https://discord.com/invite/f3qwvp56be)**
 - 📺 YouTube: @divinetribe1
 

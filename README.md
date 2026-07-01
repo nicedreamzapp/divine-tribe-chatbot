@@ -11,10 +11,15 @@
 </p>
 
 <p align="center">
-  <a href="https://ineedhemp.com">🌐 Live on Website</a> •
-  <a href="https://discord.com/invite/f3qwvp56be">💬 Live on Discord</a> •
-  <a href="mailto:matt@ineedhemp.com">📧 Monitoring Email</a>
+  <a href="https://ineedhemp.com">🌐 Divine Tribe</a> •
+  <a href="https://discord.com/invite/f3qwvp56be">💬 Discord</a> •
+  <a href="mailto:matt@ineedhemp.com">📧 Contact</a>
 </p>
+
+> **Status (July 2026):** the hosted chatbot service is paused while support moves to a local-first
+> AI stack (see [claude-code-local](https://github.com/nicedreamzapp/claude-code-local)). Everything
+> in this repo ran in production for months and works as documented — treat it as a complete,
+> deployable reference build rather than a live demo.
 
 ---
 
@@ -367,9 +372,9 @@ Customer: "where's my order 198234"
 
 | Platform | Status | Features |
 |:---------|:------:|:---------|
-| 🌐 **Website** | `LIVE` | Chat, Products, Orders, Images, Troubleshooting |
-| 💬 **Discord** | `LIVE` | Chat, Products, Orders (DM), Troubleshooting |
-| 📧 **Email** | `LIVE` | Draft responses, Order lookup, Human approval |
+| 🌐 **Website** | `PAUSED` | Chat, Products, Orders, Images, Troubleshooting |
+| 💬 **Discord** | `PAUSED` | Chat, Products, Orders (DM), Troubleshooting |
+| 📧 **Email** | `SUPERSEDED` | Replaced by a local-first drafting agent (human-approved sends) |
 
 ---
 
