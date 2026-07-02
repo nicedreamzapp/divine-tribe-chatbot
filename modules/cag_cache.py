@@ -331,10 +331,12 @@ We recommend the **Core XL Deluxe** instead - it's our newest model!
 **Tips:**
 - Clean after EVERY session for best flavor
 - Don't exceed 37W during burn-off
-- Replace cup after ~100 sessions or if flavor degrades
+- Set it and forget it: once your cup is installed, don't re-tighten the screws or touch the lead wires — set up right and cleaned with burn-offs, a cup lasts about a YEAR of daily use
 - Keep O-rings lubed with vegetable oil
 
 **Warning:** Never burn off with concentrate in cup!
+
+📖 Full guide: https://ineedhemp.com/how-to-clean-maintain-your-vaporizer-make-your-heater-last-a-year/
 
 📧 Questions? matt@ineedhemp.com"""
             },
@@ -611,19 +613,30 @@ Matt will verify and ship the missing item right away!
                     '📊 **Check resistance**: Should be 0.40-0.52 ohms',
                     '🔧 **Mod settings**: Make sure temp control is enabled (Ni/TCR mode)'
                 ],
-                'perfect_flavor_settings': 'TCR 180-200, 380-400°F, 33-35W',
+                'perfect_flavor_settings': 'TCR 180-200, 380-400°F, 33-35W (Matt runs his at TCR 200, 38W, up to 480°F)',
                 'keywords': ['not heating', 'no vapor', 'weak', 'barely heating', 'cold']
+            },
+            'v5_good_resistance_not_hot': {
+                'problem': 'Resistance reads normal (0.44-0.48) but cup won\'t get hot enough to vape',
+                'reddit_solutions': [
+                    '✅ **Good news first**: If your cup reads 0.44-0.52 ohms cold, the cup itself is FINE — a truly bad cup shows wrong resistance. Don\'t swap it, don\'t re-tighten anything.',
+                    '🎛️ **TCR is usually set too low**: Raise TCR to 200 (even 210) and try again — a low TCR makes the mod think the cup is hotter than it is, so it backs off early and you never reach vaping temps',
+                    '🌡️ **Raise the target temp**: Matt runs TCR 200, 38W, up to 480°F — if it heats but won\'t quite get there, go up in temperature',
+                    '🔁 **New cup = recalibrate**: Every cup sits a hair different (0.47 vs 0.48). If you swapped cups, re-run your mod\'s calibration (q-tip test) with the NEW cup installed before judging it',
+                    '🔧 **Set it and forget it**: once it\'s working, don\'t touch the screws or lead wires again'
+                ],
+                'if_still_broken': 'If resistance is right and TCR 200-210 at 480°F still won\'t vape, email matt@ineedhemp.com with your mod model + settings',
+                'keywords': ['not hot enough', 'wont get hot', "won't get hot", 'not getting hot', 'resistance is fine', 'resistance is good', 'reads 0.4', 'reads .4', '0.48', '.48 ohm', 'tcr', 'heats but', 'warm but no vapor', 'not enough temperature', 'no real temperature', 'cant get any temperature', "can't get any temperature", 'new cup not working', 'new cup weak', 'cups are bad', 'bad batch']
             },
             'v5_burnt_taste': {
                 'problem': 'V5 producing burnt or bad taste',
                 'reddit_solutions': [
                     '🌡️ **Temperature too high**: Lower to 380-400°F',
                     '⚡ **Wattage too high**: Lower to 32-35W',
-                    '🧹 **Cup needs cleaning**: Old buildup tastes burnt',
-                    '🔄 **Cup replacement**: After 100+ sessions, cup degrades',
+                    '🧹 **Cup needs cleaning**: Old buildup tastes burnt — do a burn-off',
                     '📏 **Less material**: Overloading causes burning'
                 ],
-                'prevention': 'Clean after every session with alcohol wipe or burn-off cleaning',
+                'prevention': 'Burn-off cleaning fixes most burnt taste — a well-kept cup lasts about a year, no need to replace it early. Guide: https://ineedhemp.com/how-to-clean-maintain-your-vaporizer-make-your-heater-last-a-year/',
                 'keywords': ['burnt', 'bad taste', 'nasty', 'harsh', 'gross taste', 'metallic']
             },
             'core_not_heating': {
@@ -810,7 +823,8 @@ For tech support, Reddit and Discord often have instant answers from the communi
 **Pro tips**:
 - Never clean with water while hot (can crack!)
 - Don't forget to clean the threads too
-- Replace cup after 100-150 sessions for best flavor
+- Set it and forget it: don't re-tighten screws or touch the lead wires after install — a properly set up cup lasts about a year of daily use with regular burn-offs
+- Full guide: https://ineedhemp.com/how-to-clean-maintain-your-vaporizer-make-your-heater-last-a-year/
 
 **For Core 2.0**: Same process, but also clean the glass bubbler regularly with alcohol!
             ''',
